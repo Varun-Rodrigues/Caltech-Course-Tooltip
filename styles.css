@@ -1,113 +1,179 @@
 /**
- * Caltech Course Code Tooltip Extension - Content Styles
- * Styles for tooltips and highlighted course codes
+ * Caltech Course Code Tooltip Extension - Content Script Styles
+ * ============================================================
+ * 
+ * This stylesheet defines the visual appearance of tooltips and course code
+ * highlighting that appear on web pages. It creates an elegant, non-intrusive
+ * tooltip experience that integrates seamlessly with any website design.
+ * 
+ * Key Design Goals:
+ * - Non-intrusive integration with existing page content
+ * - High readability with excellent contrast ratios
+ * - Professional appearance consistent with Caltech branding
+ * - Smooth animations for enhanced user experience
+ * - Responsive design that works on various screen sizes
+ * - Accessibility-compliant color choices and interactions
+ * 
+ * Components:
+ * - Tooltip container with positioning and visibility controls
+ * - Content elements for course information display
+ * - Highlighted course codes with hover effects
+ * - Interactive elements for pinning and section cycling
+ * - Animation and transition effects
  * 
  * @author Varun Rodrigues
  * @version 2.0
+ * @since 2025
  */
 
 /* ==========================================================================
-   Tooltip Container
+   Tooltip Container - Main Tooltip Structure
    ========================================================================== */
+
+/**
+ * Main tooltip container
+ * 
+ * This is the primary container for all tooltip content. It uses absolute positioning
+ * to overlay web content without disrupting page layout, and includes sophisticated
+ * styling for professional appearance and smooth animations.
+ */
 .caltech-tooltip {
-  position: absolute;
-  background-color: #ffffff;
-  color: #333;
-  padding: 16px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-family: Arial, sans-serif;
-  line-height: 1.4;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  z-index: 10000;
-  max-width: 450px;
-  word-wrap: break-word;
-  opacity: 0;
-  transition: opacity 0.2s ease-in-out;
-  pointer-events: none;
-  border: 1px solid #e0e0e0;
+  position: absolute;                             /* Absolute positioning for overlay */
+  background-color: #ffffff;                      /* Clean white background */
+  color: #333;                                    /* Dark gray text for readability */
+  padding: 16px;                                  /* Generous padding for content spacing */
+  border-radius: 8px;                            /* Rounded corners for modern appearance */
+  font-size: 14px;                               /* Readable font size */
+  font-family: Arial, sans-serif;                /* Web-safe font stack */
+  line-height: 1.4;                              /* Optimal line spacing for readability */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);    /* Subtle shadow for depth and separation */
+  z-index: 10000;                                /* High z-index to appear above page content */
+  max-width: 450px;                              /* Maximum width to prevent overly wide tooltips */
+  word-wrap: break-word;                         /* Break long words to prevent overflow */
+  opacity: 0;                                    /* Initially hidden for smooth fade-in */
+  transition: opacity 0.2s ease-in-out;         /* Smooth fade animation */
+  pointer-events: none;                          /* Initially non-interactive */
+  border: 1px solid #e0e0e0;                    /* Subtle border for definition */
 }
 
+/**
+ * Visible tooltip state
+ * 
+ * When the tooltip becomes visible, opacity changes and pointer events are managed
+ * to allow interaction with tooltip content while maintaining proper event handling.
+ */
 .caltech-tooltip.visible {
-  opacity: 1;
-  /* Allow events to pass through the tooltip container to elements below */
-  pointer-events: none;
+  opacity: 1;                                    /* Full opacity when visible */
+  pointer-events: none;                          /* Container itself remains non-interactive */
 }
 
-/* Re-enable pointer events for interactive tooltip content */
+/**
+ * Interactive tooltip content
+ * 
+ * Re-enables pointer events for interactive elements within the tooltip,
+ * allowing users to interact with buttons, links, and other controls.
+ */
 .caltech-tooltip.visible > * {
-  pointer-events: auto;
+  pointer-events: auto;                          /* Enable interaction with tooltip content */
 }
 
 /* ==========================================================================
-   Tooltip Content Elements
+   Tooltip Content Elements - Course Information Display
    ========================================================================== */
 
-/* Course code styling */
+/**
+ * Course code display styling
+ * 
+ * Shows the course code (e.g., "CS 156") in Caltech orange with emphasis.
+ * This serves as the header/identifier for the course information.
+ */
 .caltech-tooltip .course-code {
-  color: #d14900;
-  font-weight: bold;
-  font-size: 12px;
-  margin-bottom: 3px;
+  color: #d14900;                                /* Caltech orange brand color */
+  font-weight: bold;                             /* Bold for emphasis and hierarchy */
+  font-size: 12px;                              /* Slightly smaller than body text */
+  margin-bottom: 3px;                           /* Small margin for spacing */
 }
 
-/* Course title styling */
+/**
+ * Course title/name styling
+ * 
+ * Displays the full course name with prominent styling to establish
+ * clear visual hierarchy within the tooltip content.
+ */
 .caltech-tooltip .course-title {
-  color: #333;
-  font-weight: bold;
-  font-size: 14px;
-  margin-bottom: 8px;
+  color: #333;                                   /* Dark gray for readability */
+  font-weight: bold;                             /* Bold for prominence */
+  font-size: 14px;                              /* Standard body text size */
+  margin-bottom: 8px;                           /* Adequate spacing from content below */
 }
 
-/* Course meta information (units, terms) */
+/**
+ * Course metadata styling (units, terms)
+ * 
+ * Displays supplementary course information in a subtle, italic style
+ * to distinguish it from primary content.
+ */
 .caltech-tooltip .course-meta {
-  color: #666;
-  font-size: 11px;
-  margin-bottom: 4px;
-  font-style: italic;
+  color: #666;                                   /* Medium gray for secondary information */
+  font-size: 11px;                              /* Smaller size for metadata */
+  margin-bottom: 4px;                           /* Tight spacing for grouped metadata */
+  font-style: italic;                           /* Italic to indicate supplementary info */
 }
 
-/* Prerequisites styling */
+/**
+ * Prerequisites section styling
+ * 
+ * Displays prerequisite information with styling that indicates
+ * important but secondary information.
+ */
 .caltech-tooltip .prerequisites {
-  color: #666;
-  font-size: 11px;
-  margin-bottom: 8px;
-  font-style: italic;
+  color: #666;                                   /* Medium gray for secondary content */
+  font-size: 11px;                              /* Smaller text for supplementary info */
+  margin-bottom: 8px;                           /* Standard spacing from next element */
+  font-style: italic;                           /* Italic for stylistic differentiation */
 }
 
-/* Description styling */
+/**
+ * Course description styling with scrollable area
+ * 
+ * Handles potentially long course descriptions with a scrollable container
+ * that maintains tooltip compactness while allowing access to full content.
+ */
 .caltech-tooltip .description {
-  color: #333;
-  font-size: 11px;
-  margin-bottom: 6px;
-  max-height: 120px;
-  overflow-y: auto;
-  line-height: 1.3;
-  /* Ensure scrollbar is always interactive */
-  pointer-events: auto;
+  color: #333;                                   /* Standard text color for readability */
+  font-size: 11px;                              /* Smaller text to fit more content */
+  margin-bottom: 6px;                           /* Moderate spacing */
+  max-height: 120px;                            /* Limit height to prevent overly tall tooltips */
+  overflow-y: auto;                             /* Enable vertical scrolling when needed */
+  line-height: 1.3;                            /* Tight line height for compact display */
+  pointer-events: auto;                         /* Enable interaction for scrolling */
 }
 
-/* Custom scrollbar for description */
+/**
+ * Custom scrollbar styling for description area
+ * 
+ * Provides a clean, unobtrusive scrollbar that fits the tooltip design
+ * while maintaining accessibility and usability.
+ */
 .caltech-tooltip .description::-webkit-scrollbar {
-  width: 6px;
-  /* Highest priority for scrollbar interactions */
-  pointer-events: auto;
+  width: 6px;                                   /* Narrow scrollbar for minimal intrusion */
+  pointer-events: auto;                         /* Ensure scrollbar is interactive */
 }
 
 .caltech-tooltip .description::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 3px;
-  pointer-events: auto;
+  background: #f1f1f1;                         /* Light gray track background */
+  border-radius: 3px;                          /* Rounded track corners */
+  pointer-events: auto;                         /* Interactive track */
 }
 
 .caltech-tooltip .description::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 3px;
-  pointer-events: auto;
+  background: #c1c1c1;                         /* Medium gray thumb */
+  border-radius: 3px;                          /* Rounded thumb corners */
+  pointer-events: auto;                         /* Interactive thumb */
 }
 
 .caltech-tooltip .description::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  background: #a8a8a8;                         /* Darker gray on hover for feedback */
 }
 
 /* Instructors styling */

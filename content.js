@@ -1,15 +1,52 @@
 /**
  * Caltech Course Code Tooltip Extension - Content Script
- * Detects course codes on web pages and displays interactive tooltips
+ * ===================================================
+ * 
+ * This content script is the main component that runs on web pages to detect course codes
+ * and display interactive tooltips with course information. It provides a rich user experience
+ * with hover tooltips, click-to-pin functionality, and section cycling for multi-section courses.
+ * 
+ * Key Features:
+ * - Automatic course code detection using regex patterns
+ * - Interactive tooltips with hover and click functionality  
+ * - Pinning system for persistent tooltip display
+ * - Section cycling for multi-section courses
+ * - Real-time settings synchronization
+ * - Mutation observer for dynamic content
+ * - Comprehensive error handling and logging
+ * 
+ * Architecture:
+ * - Uses a single class (CaltechCourseTooltip) to encapsulate all functionality
+ * - Communicates with background script for course data and matching
+ * - Responds to settings changes from popup in real-time
+ * - Handles both static and dynamically loaded content
  * 
  * @author Varun Rodrigues
  * @version 2.0
+ * @since 2025
  */
 
+/**
+ * Main class for course code detection and tooltip functionality
+ * 
+ * This class manages the entire lifecycle of the extension on a web page:
+ * - Initialization and configuration loading
+ * - Course code detection and highlighting  
+ * - Tooltip creation and management
+ * - User interaction handling
+ * - Settings synchronization
+ */
 class CaltechCourseTooltip {
 
+  /**
+   * Initialize the extension with default configuration and state management
+   * 
+   * Sets up all necessary instance variables and starts the initialization process.
+   * The constructor establishes the foundation for tooltip functionality including
+   * configuration loading, state tracking, and event management.
+   */
   constructor() {
-    // Get configuration from global object with fallback
+    // Load configuration from global object with comprehensive fallback
     this.config = window.CaltechExtensionConfig || {
       DEFAULT_SETTINGS: {
         extensionEnabled: true,
@@ -20,7 +57,8 @@ class CaltechCourseTooltip {
         showDescription: false,
         showInstructors: true
       },
-      COURSE_CODE_PATTERN: /\b([A-Za-z][a-zA-Z]{1,4}(?:\/[A-Za-z][a-zA-Z]{1,4})*)\s*(\d{1,3}(?:\/\d{1,3})*)\s*([abcdegimx]{1,3})?(?=\s|$|[.,;!?()\[\]{}])/gi,
+      // Updated course code pattern with safe ending detection to avoid capturing connecting words
+      COURSE_CODE_PATTERN: /\b([A-Za-z][a-zA-Z]{1,4}(?:\/[A-Za-z][a-zA-Z]{1,4})*(?:\/[A-Za-z][a-zA-Z]{1,4})*)\s+(\d{1,3}(?:\/\d{1,3})*)\s*([a-z]{1,3})?(?=\s*[.,;!?()\[\]{}]|$|\s*\n|\s+(?:and|or)(?:\s|$))/gi,
       TOOLTIP_CONFIG: {
         HOVER_DELAY: 300,
         HIDE_DELAY: 100,
@@ -28,24 +66,26 @@ class CaltechCourseTooltip {
       }
     };
     
-    this.courses = [];
-    this.tooltip = null;
-    this.hoverTimeout = null;
-    this.hideTimeout = null;
-    this.processedNodes = new WeakSet();
-    this.settings = { ...this.config.DEFAULT_SETTINGS };
-    this.mutationObserver = null;
+    // Core data and UI state
+    this.courses = [];                    // Course catalog data
+    this.tooltip = null;                  // Tooltip DOM element
+    this.hoverTimeout = null;             // Timeout for hover delay
+    this.hideTimeout = null;              // Timeout for hiding tooltip
+    this.processedNodes = new WeakSet();  // Track processed DOM nodes
+    this.settings = { ...this.config.DEFAULT_SETTINGS }; // Current settings
+    this.mutationObserver = null;         // Observer for dynamic content
     
-    // Tooltip state management
-    this.pinnedElement = null; // Element that was clicked to pin tooltip
-    this.currentHoveredElement = null; // Element currently being hovered
-    this.isPinned = false; // Whether a tooltip is currently pinned
+    // Tooltip interaction state management
+    this.pinnedElement = null;            // Element that was clicked to pin tooltip
+    this.currentHoveredElement = null;    // Element currently being hovered
+    this.isPinned = false;                // Whether a tooltip is currently pinned
     
-    // Section cycling state management
-    this.sectionCycleState = new Map(); // Maps element -> {sections: [], currentIndex: number}
+    // Section cycling for multi-section courses  
+    this.sectionCycleState = new Map();   // Maps element -> {sections: [], currentIndex: number}
     
+    // Start initialization process with error handling
     this.init().catch(error => {
-      console.error('Extension initialization failed:', error);
+      console.error('❌ Extension initialization failed:', error);
     });
   }
 
@@ -440,6 +480,9 @@ class CaltechCourseTooltip {
       console.log('📝 Found shorthand course patterns:', shorthandMatches);
       matches.push(...shorthandMatches);
     }
+
+    // Combine all special matches (range + shorthand) for overlap checking
+    const allSpecialMatches = [...rangeMatches, ...shorthandMatches];
     
     const pattern = new RegExp(this.config.COURSE_CODE_PATTERN.source, 'gi');
     let match;
@@ -448,25 +491,30 @@ class CaltechCourseTooltip {
       const [fullMatch, prefixes, numbers, letters = ''] = match;
       console.log('📋 Found course match:', {fullMatch, prefixes, numbers, letters, index: match.index});
       
-      // Skip if this match overlaps with any shorthand matches we already found
+      // Skip if this match overlaps with any special matches (range or shorthand) we already found
       const matchStart = match.index;
       const matchEnd = match.index + fullMatch.length;
-      const overlapsShorthand = shorthandMatches.some(shorthand => {
-        return (matchStart < shorthand.index + shorthand.length && matchEnd > shorthand.index);
+      const overlapsSpecial = allSpecialMatches.some(specialMatch => {
+        const specialStart = specialMatch.index;
+        const specialEnd = specialMatch.index + specialMatch.length;
+        return (matchStart < specialEnd && matchEnd > specialStart);
       });
       
-      if (overlapsShorthand) {
-        console.log('⏭️ Skipping match that overlaps with shorthand notation:', fullMatch);
+      if (overlapsSpecial) {
+        console.log('⏭️ Skipping match that overlaps with special notation:', fullMatch);
         continue;
       }
       
-      // Check if this is a compound course code (e.g., "APh/EE 23/24")
-      if (numbers.includes('/')) {
-        console.log('🔄 Expanding compound course code:', fullMatch);
+      // Check if this is a compound course code that should be expanded (e.g., "APh/EE 23/24")
+      // vs. a single course with compound number (e.g., "ACM 95/100 ab")
+      if (numbers.includes('/') && prefixes.includes('/')) {
+        // This is cross-listed departments with multiple numbers - expand it
+        console.log('🔄 Expanding compound cross-listed course code:', fullMatch);
         const expandedMatches = this.expandCompoundCourseCode(match, prefixes, numbers, letters);
         console.log('📈 Expanded to:', expandedMatches);
         matches.push(...expandedMatches);
       } else {
+        // This is either a simple course or a single course with compound number
         matches.push({
           fullMatch: fullMatch.trim(),
           index: match.index,
@@ -486,73 +534,87 @@ class CaltechCourseTooltip {
   detectShorthandCourses(text) {
     console.log('🔍 Detecting shorthand course patterns in:', text);
     const matches = [];
+    const processedRanges = []; // Track processed text ranges to avoid duplicates
     
-    // Pattern to match: Department(s) + first number + comma/and-separated additional numbers
-    // e.g., "Ge/Ay 132, 133, 137" or "CS 15, 16, 17" or "APh/EE 23, 24" or "APh/EE 130, 131, and 132"
-    const shorthandPattern = /\b([A-Za-z][a-zA-Z]{1,4}(?:\/[A-Za-z][a-zA-Z]{1,4})*)\s*(\d{1,3})([abcdegimx]{1,3})?\s*(?:,\s*(?:and\s+)?|,?\s+and\s+)(?:\d{1,3}[abcdegimx]{1,3}?\s*(?:,\s*(?:and\s+)?|,?\s+and\s+|$))+/gi;
+    // Single comprehensive pattern to match shorthand notation:
+    // "APh/EE 130, 131" or "CS 15, 16, 17" or "Math 1, 2, and 3" or "APh/Ph/MS 152, 153"
+    const shorthandPattern = /\b([A-Za-z][a-zA-Z]{1,4}(?:\/[A-Za-z][a-zA-Z]{1,4})*(?:\/[A-Za-z][a-zA-Z]{1,4})*)\s+(\d{1,3})([a-z]*)\s*,\s*(\d{1,3})([a-z]*)(?:\s*,\s*(?:and\s+)?(\d{1,3})([a-z]*))?\b/g;
     
     let match;
     while ((match = shorthandPattern.exec(text)) !== null) {
       const fullMatch = match[0];
-      const prefixes = match[1];  // e.g., "Ge/Ay"
-      const firstNumber = match[2];  // e.g., "132"
-      const firstLetters = match[3] || '';  // e.g., "a" or ""
+      const prefixes = match[1];  // e.g., "APh/EE"
+      const matchStart = match.index;
+      const matchEnd = match.index + fullMatch.length;
+      
+      // Check if this range overlaps with any already processed range
+      const overlaps = processedRanges.some(range => 
+        (matchStart < range.end && matchEnd > range.start)
+      );
+      
+      if (overlaps) {
+        console.log('⏭️ Skipping overlapping shorthand match:', fullMatch);
+        continue;
+      }
+      
+      // Mark this range as processed
+      processedRanges.push({ start: matchStart, end: matchEnd });
       
       console.log('📝 Found shorthand pattern:', {
         fullMatch,
         prefixes,
-        firstNumber,
-        firstLetters,
-        index: match.index
+        index: match.index,
+        groups: match.slice(1)
       });
       
-      // Extract all numbers from the pattern, but we need to carefully find their positions
-      const numberPattern = /\d{1,3}([abcdegimx]{1,3})?/g;
+      // Extract all numbers and their positions from the match
+      const numberPattern = /\d{1,3}[a-z]*/g;
       const allNumbers = [];
       let numberMatch;
       
-      // Reset the regex to search within the full match
+      // Reset pattern for this specific match text
       numberPattern.lastIndex = 0;
-      const tempText = fullMatch;
-      while ((numberMatch = numberPattern.exec(tempText)) !== null) {
+      while ((numberMatch = numberPattern.exec(fullMatch)) !== null) {
+        const numberText = numberMatch[0];
+        const justNumber = numberText.match(/\d+/)[0];
+        const letters = numberText.replace(/\d+/, '');
+        
         allNumbers.push({
-          text: numberMatch[0],
+          text: numberText,
+          number: justNumber,
+          letters: letters,
           indexInMatch: numberMatch.index,
           absoluteIndex: match.index + numberMatch.index
         });
       }
       
-      console.log('🔢 All numbers found:', allNumbers.map(n => `${n.text} at ${n.absoluteIndex}`));
+      console.log('🔢 Numbers found in shorthand:', allNumbers);
       
       // Create individual course matches for each number
       for (let i = 0; i < allNumbers.length; i++) {
         const numberInfo = allNumbers[i];
-        const numberText = numberInfo.text; // e.g., "132" or "133a"
-        const justNumber = numberText.match(/\d+/)[0];
-        const letters = numberText.replace(/\d+/, '');
+        const courseCode = `${prefixes} ${numberInfo.text}`;
         
-        let courseCode, displayText, highlightStart, highlightLength;
+        let highlightStart, highlightLength, displayText;
         
         if (i === 0) {
-          // First number: show full course code and highlight from prefix start to number end
-          courseCode = `${prefixes} ${numberText}`;
-          displayText = `${prefixes} ${numberText}`;
-          highlightStart = match.index; // Start from the prefix
-          highlightLength = numberInfo.indexInMatch + numberText.length;
+          // First number: highlight from department start to end of first number
+          highlightStart = match.index;
+          const firstPartLength = prefixes.length + 1 + numberInfo.text.length; // "APh/EE " + "130"
+          highlightLength = firstPartLength;
+          displayText = `${prefixes} ${numberInfo.text}`;
         } else {
-          // Subsequent numbers: just highlight the number itself
-          courseCode = `${prefixes} ${numberText}`;
-          displayText = numberText;
+          // Subsequent numbers: highlight just the number
           highlightStart = numberInfo.absoluteIndex;
-          highlightLength = numberText.length;
+          highlightLength = numberInfo.text.length;
+          displayText = numberInfo.text;
         }
         
         console.log(`📋 Creating shorthand match ${i + 1}:`, {
           courseCode,
           displayText,
           highlightStart,
-          highlightLength,
-          originalText: text.slice(highlightStart, highlightStart + highlightLength)
+          highlightLength
         });
         
         matches.push({
@@ -560,21 +622,14 @@ class CaltechCourseTooltip {
           index: highlightStart,
           length: highlightLength,
           prefixes,
-          numbers: justNumber,
-          letters,
+          numbers: numberInfo.number,
+          letters: numberInfo.letters,
           isShorthand: true,
           isFirstInShorthand: i === 0,
           shorthandDisplayText: displayText,
-          originalText: text.slice(highlightStart, highlightStart + highlightLength),
           originalShorthandMatch: fullMatch
         });
       }
-      
-      // Mark this entire shorthand pattern as processed
-      matches.shorthandSpan = {
-        start: match.index,
-        end: match.index + fullMatch.length
-      };
     }
     
     console.log('✅ Shorthand matches found:', matches);

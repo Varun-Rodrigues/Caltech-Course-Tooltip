@@ -1,45 +1,90 @@
 /**
- * Background script for Caltech Course Code Tooltip extension
- * Handles message passing and course matching utilities
+ * Background Service Worker for Caltech Course Code Tooltip Extension
+ * 
+ * This background script serves as the communication hub for the extension, handling:
+ * - Message passing between content scripts and popup
+ * - Course catalog data retrieval and caching
+ * - Complex course code matching logic for cross-listed courses
+ * - Extension settings initialization
+ * 
+ * Key Features:
+ * - Supports complex course formats like "Ma/CS 6/106 abc"
+ * - Handles partial course code matching (e.g., "CS 156" matches "ACM/CS 156")
+ * - Creates synthetic course entries for multi-section courses
+ * - Provides fallback matching for various input formats
  * 
  * @author Varun Rodrigues
  * @version 2.0
+ * @since 2025
  */
 
-// Define DEFAULT_SETTINGS directly in background script (service workers don't have window object)
+/**
+ * Default extension settings configuration
+ * Note: Defined here because service workers don't have access to window object
+ * These settings control what information is displayed in tooltips
+ */
 const DEFAULT_SETTINGS = {
-  extensionEnabled: true,
-  showName: true,
-  showUnits: true,
-  showTerms: true,
-  showPrerequisites: true,
-  showDescription: false,
-  showInstructors: false
+  extensionEnabled: true,      // Master toggle for extension functionality
+  showName: true,              // Display course name/title
+  showUnits: true,             // Display unit count
+  showTerms: true,             // Display terms offered
+  showPrerequisites: true,     // Display prerequisite information
+  showDescription: true,       // Display course description
+  showInstructors: true        // Display instructor information
 };
 
-// Shared course matching utilities
+/**
+ * Utility class for sophisticated course code matching algorithms
+ * 
+ * This class handles the complex logic needed to match user input against
+ * Caltech's diverse course code formats, including:
+ * - Cross-listed courses (e.g., "ACM/CS 156")
+ * - Multi-number courses (e.g., "Ma/CS 6/106")
+ * - Section-based courses (e.g., "Ph 12 abc")
+ * - Partial matches and fuzzy matching
+ * 
+ * All methods are static as this is a utility class without state
+ */
 class CourseMatchingUtils {
   /**
-   * Generate variations of a course code for matching
-   * @param {string} courseCode - The course code to generate variations for
-   * @returns {string[]} Array of course code variations
+   * Generate multiple formatting variations of a course code for robust matching
+   * 
+   * Creates variations to handle different spacing, separator styles, and formatting
+   * that users might input or that appear in different contexts.
+   * 
+   * @param {string} courseCode - The original course code to generate variations for
+   * @returns {string[]} Array of unique course code variations for matching
+   * 
+   * @example
+   * generateCourseCodeVariations("CS 156") returns:
+   * ["CS 156", "CS/156", "CS156", etc.]
    */
   static generateCourseCodeVariations(courseCode) {
     const variations = [
-      courseCode,
-      courseCode.replace(/\s+/g, ' '),
-      courseCode.replace(/\s+/g, '/'),
-      courseCode.replace(/[\/\s]+/g, ' '),
-      courseCode.replace(/\s+/g, ''), // Remove all spaces
-      courseCode.replace(/(\w+)(\d+)/g, '$1 $2'), // Add space between letters and numbers
-      courseCode.replace(/(\w+)\s*(\d+)/g, '$1$2') // Remove space between letters and numbers
+      courseCode,                                          // Original format
+      courseCode.replace(/\s+/g, ' '),                    // Normalize spaces
+      courseCode.replace(/\s+/g, '/'),                    // Space to slash
+      courseCode.replace(/[\/\s]+/g, ' '),                // Slash to space
+      courseCode.replace(/\s+/g, ''),                     // Remove all spaces
+      courseCode.replace(/(\w+)(\d+)/g, '$1 $2'),         // Add space between letters and numbers
+      courseCode.replace(/(\w+)\s*(\d+)/g, '$1$2')        // Remove space between letters and numbers
     ];
     
-    return [...new Set(variations)]; // Remove duplicates
+    return [...new Set(variations)]; // Remove duplicates using Set
   }
   
   /**
-   * Check if a course matches any variation of the input
+   * Determine if a course matches any variation of the user's input
+   * 
+   * This is the core matching algorithm that handles:
+   * - Exact matches with various formatting
+   * - Cross-listed course matching (e.g., "CS 156" matches "ACM/CS 156")
+   * - Multi-number course matching (e.g., "6" matches "Ma/CS 6/106")
+   * - Section letter matching (e.g., "a" matches "abc", but "d" doesn't match "abc")
+   * 
+   * @param {Object} course - Course object containing course_code_original field
+   * @param {string[]} inputVariations - Array of input variations to test against
+   * @returns {boolean} True if the course matches any input variation
    */
   static doesCourseMatch(course, inputVariations) {
     const originalCode = course.course_code_original?.toUpperCase() || '';
@@ -57,19 +102,24 @@ class CourseMatchingUtils {
         return true;
       }
       
-      // Enhanced matching for cross-listed multi-number courses with comprehensive letter support
+      // Enhanced matching for cross-listed multi-number courses
+      // Example: Input "CS 6" should match "Ma/CS 6/106 abc"
+      // Example: Input "Ma/CS 6" should match "Ma/CS 6/106 abc"
       if (originalCode.includes('/')) {
         // Try to match complex cross-listed courses like "Ma/CS 6/106 abc"
+        // This handles courses with multiple departments and multiple numbers
         const complexMatch = originalCode.match(/^([A-Z]+(?:\/[A-Z]+)*)\s+(\d+)\/(\d+)\s*([A-Z]*)$/);
         if (complexMatch) {
           const [, coursePrefixes, firstNumber, secondNumber, courseLetters] = complexMatch;
           
           // Parse user input with flexible formatting
+          // User might input "CS 6", "Ma/CS 6", "CS 6/106", etc.
           const inputMatch = upperVariation.match(/^([A-Z]+(?:\/[A-Z]+)*)\s*(\d+(?:\/\d+)?)\s*([A-Z]*)$/);
           if (inputMatch) {
             const [, inputPrefixes, inputNumbers, inputLetters] = inputMatch;
             
-            // Check prefix compatibility
+            // Check prefix compatibility - input prefixes must be subset of course prefixes
+            // e.g., "CS" is subset of "Ma/CS", but "Ph" is not subset of "Ma/CS"
             const coursePrefixList = coursePrefixes.split('/');
             const inputPrefixList = inputPrefixes.split('/');
             
@@ -79,7 +129,7 @@ class CourseMatchingUtils {
             );
             
             if (prefixMatches) {
-              // Check number compatibility
+              // Check number compatibility for multi-number courses
               let numberMatches = false;
               
               if (inputNumbers.includes('/')) {
@@ -87,13 +137,15 @@ class CourseMatchingUtils {
                 numberMatches = inputNumbers === `${firstNumber}/${secondNumber}`;
               } else {
                 // Input has single number - must match either first or second number
+                // e.g., "6" matches "6/106", "106" matches "6/106"
                 numberMatches = inputNumbers === firstNumber || inputNumbers === secondNumber;
               }
               
               if (numberMatches) {
-                // Check letter compatibility
+                // Check letter compatibility - input letters must be subset of course letters
                 if (inputLetters) {
                   // Input letters must be a subset of course letters
+                  // e.g., "a" matches "abc", "ab" matches "abc", but "d" doesn't match "abc"
                   if (courseLetters && this.isLetterSubset(inputLetters, courseLetters)) {
                     return true;
                   }
@@ -106,7 +158,8 @@ class CourseMatchingUtils {
           }
         }
         
-        // Try simpler cross-listed courses (e.g., "ACM/IDS 101 ab")  
+        // Try simpler cross-listed courses (e.g., "ACM/IDS 101 ab")
+        // This handles standard cross-listed courses with single numbers
         const simpleMatch = originalCode.match(/^([A-Z]+(?:\/[A-Z]+)*)\s+(\d+)\s*([A-Z]*)$/);
         if (simpleMatch) {
           const [, coursePrefixes, courseNumber, courseLetters] = simpleMatch;
@@ -115,7 +168,7 @@ class CourseMatchingUtils {
           if (inputMatch) {
             const [, inputPrefixes, inputNumber, inputLetters] = inputMatch;
             
-            // Check prefix compatibility
+            // Check prefix compatibility (same logic as complex courses)
             const coursePrefixList = coursePrefixes.split('/');
             const inputPrefixList = inputPrefixes.split('/');
             
@@ -123,6 +176,7 @@ class CourseMatchingUtils {
               coursePrefixList.includes(inputPrefix)
             );
             
+            // Check number and letter matching
             if (prefixMatches && inputNumber === courseNumber) {
               if (inputLetters) {
                 if (courseLetters && this.isLetterSubset(inputLetters, courseLetters)) {
@@ -135,7 +189,9 @@ class CourseMatchingUtils {
           }
         }
         
-        // Fallback for other slash-containing formats
+        // Fallback matching for other slash-containing formats
+        // Split on slashes and try to match individual parts
+        // This catches edge cases not handled by the regex patterns above
         const parts = originalCode.split('/');
         for (const part of parts) {
           const trimmedPart = part.trim();
@@ -149,7 +205,8 @@ class CourseMatchingUtils {
         }
       }
       
-      // Handle single courses with letter suffixes
+      // Handle single courses with letter suffixes (e.g., "Ph 12 abc")
+      // This is for non-cross-listed courses with section letters
       const inputMatch = upperVariation.match(/^([A-Z]+)\s*(\d+)\s*([A-Z]*)$/);
       const courseMatch = originalCode.match(/^([A-Z]+)\s*(\d+)\s*([A-Z]*)$/);
       
@@ -157,12 +214,15 @@ class CourseMatchingUtils {
         const [, inputPrefix, inputNumber, inputLetters] = inputMatch;
         const [, coursePrefix, courseNumber, courseLetters] = courseMatch;
         
+        // Department and number must match exactly
         if (inputPrefix === coursePrefix && inputNumber === courseNumber) {
           if (inputLetters) {
+            // Check if input letters are subset of course letters
             if (courseLetters && this.isLetterSubset(inputLetters, courseLetters)) {
               return true;
             }
           } else {
+            // No letters specified - match the course regardless of its letters
             return true;
           }
         }
@@ -174,11 +234,22 @@ class CourseMatchingUtils {
   
   /**
    * Check if input letters are a subset of course letters
-   * E.g., "A" is subset of "AB", "AB" is subset of "ABC"
+   * 
+   * This handles section letter matching where users can specify partial sections.
+   * For example, "a" should match "abc", "ab" should match "abc", but "d" should not match "abc".
+   * 
+   * @param {string} inputLetters - Letters specified by user (e.g., "a", "ab")
+   * @param {string} courseLetters - Letters available in course (e.g., "abc", "xyz")
+   * @returns {boolean} True if all input letters are found in course letters
+   * 
+   * @example
+   * isLetterSubset("a", "abc") → true
+   * isLetterSubset("ab", "abc") → true
+   * isLetterSubset("d", "abc") → false
    */
   static isLetterSubset(inputLetters, courseLetters) {
-    if (!inputLetters) return true;
-    if (!courseLetters) return false;
+    if (!inputLetters) return true;  // Empty input matches anything
+    if (!courseLetters) return false; // Non-empty input can't match empty course letters
     
     // Check if all letters in input are present in course letters
     for (const letter of inputLetters) {
@@ -190,12 +261,19 @@ class CourseMatchingUtils {
   }
   
   /**
-   * Find a course that matches the given course code
+   * Find a course in the catalog that matches the given course code
+   * 
+   * This is the main entry point for course matching. It tries direct matching first,
+   * then falls back to section-based matching for multi-section courses.
+   * 
+   * @param {string} courseCode - The course code to search for
+   * @param {Array} courses - Array of course objects to search in
+   * @returns {Object|null} Matching course object or null if no match found
    */
   static findCourseInCatalog(courseCode, courses) {
     const variations = this.generateCourseCodeVariations(courseCode);
     
-    // First, try to find a direct match
+    // First, try to find a direct match in the catalog
     const directMatch = courses.find(course => this.doesCourseMatch(course, variations));
     if (directMatch) {
       return directMatch;
@@ -208,12 +286,19 @@ class CourseMatchingUtils {
       return sectionMatch;
     }
     
-    return null;
+    return null; // No match found
   }
   
   /**
-   * Check if a course code with multiple sections has individual section courses
-   * and create a synthetic combined course entry
+   * Create synthetic course entries for multi-section courses
+   * 
+   * When users search for "Ph 12 abc" but only "Ph 12 a", "Ph 12 b", "Ph 12 c" exist
+   * individually in the catalog, this function creates a combined course entry.
+   * The synthetic course allows users to cycle through individual sections.
+   * 
+   * @param {string} courseCode - The multi-section course code to find
+   * @param {Array} courses - Array of course objects to search in
+   * @returns {Object|null} Synthetic course object or null if insufficient sections found
    */
   static findSectionBasedMatch(courseCode, courses) {
     // Parse the course code to extract department, number, and letters
@@ -229,7 +314,7 @@ class CourseMatchingUtils {
       return null;
     }
     
-    // Look for individual section courses
+    // Look for individual section courses in the catalog
     const sectionCourses = [];
     for (const letter of letters) {
       const sectionCode = `${department} ${number} ${letter}`;
@@ -256,63 +341,75 @@ class CourseMatchingUtils {
         description: `This course consists of multiple sections (${letters.split('').join(', ')}). Click repeatedly to cycle through individual sections for detailed information.`,
         instructors: "See individual sections",
         is_synthetic: true, // Flag to indicate this is a synthetic course
-        section_courses: sectionCourses // Include the actual section courses
+        section_courses: sectionCourses // Include the actual section courses for cycling
       };
     }
     
-    return null;
+    return null; // Insufficient sections found
   }
 }
 
-// Initialize extension on install
+/**
+ * Extension lifecycle management
+ * Initialize default settings when the extension is first installed
+ */
 chrome.runtime.onInstalled.addListener(async () => {
   try {
+    // Check if settings already exist to avoid overwriting user preferences
     const existingSettings = await chrome.storage.sync.get(DEFAULT_SETTINGS);
     
-    // Only set defaults if settings don't exist
+    // Only set defaults if settings don't exist (fresh install)
     if (Object.keys(existingSettings).length === 0) {
       await chrome.storage.sync.set(DEFAULT_SETTINGS);
-      console.log('Default settings initialized');
+      console.log('✅ Default extension settings initialized');
+    } else {
+      console.log('⚙️ Existing settings found, preserving user preferences');
     }
   } catch (error) {
-    console.error('Error initializing settings:', error);
+    console.error('❌ Error initializing extension settings:', error);
   }
 });
 
-// Handle messages from content scripts
+/**
+ * Message handler for communication between extension components
+ * 
+ * Handles requests from:
+ * - Content scripts requesting catalog data
+ * - Popup requesting course lookups
+ * - Content scripts requesting course matching
+ * 
+ * All responses are sent asynchronously to avoid blocking
+ */
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  // Validate message structure to prevent errors
+  if (!message || typeof message !== 'object' || !message.type) {
+    sendResponse({ success: false, error: 'Invalid message format' });
+    return;
+  }
+
   if (message.type === 'GET_CATALOG_DATA') {
-    // Try to fetch catalog data and send it back
-    fetch(chrome.runtime.getURL('catalog.json'))
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        return response.json();
-      })
+    // Content script requesting the full catalog data
+    fetchCatalogData()
       .then(data => {
         sendResponse({ success: true, data: data });
       })
       .catch(error => {
-        console.error('Background script failed to load catalog:', error);
+        console.error('❌ Background script failed to load catalog:', error);
         sendResponse({ success: false, error: error.message });
       });
     
-    // Return true to indicate we will send response asynchronously
-    return true;
+    return true; // Indicate async response
   }
   
   if (message.type === 'FIND_COURSE') {
-    // Handle course lookup using shared utilities
-    fetch(chrome.runtime.getURL('catalog.json'))
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        return response.json();
-      })
-      .then(data => {
-        const courseInfo = CourseMatchingUtils.findCourseInCatalog(message.courseCode, data);
+    // Popup or content script requesting specific course lookup
+    if (!message.courseCode) {
+      sendResponse({ success: false, error: 'Missing courseCode parameter' });
+      return;
+    }
+
+    findCourseInCatalog(message.courseCode)
+      .then(courseInfo => {
         sendResponse({ 
           success: true, 
           courseInfo: courseInfo,
@@ -320,11 +417,35 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         });
       })
       .catch(error => {
-        console.error('Background script failed to find course:', error);
+        console.error('❌ Background script failed to find course:', error);
         sendResponse({ success: false, error: error.message });
       });
     
-    // Return true to indicate we will send response asynchronously
-    return true;
+    return true; // Indicate async response
   }
+
+  // Unknown message type
+  sendResponse({ success: false, error: `Unknown message type: ${message.type}` });
 });
+
+/**
+ * Helper function to fetch catalog data from extension resources
+ * @returns {Promise<Array>} Promise resolving to catalog data array
+ */
+async function fetchCatalogData() {
+  const response = await fetch(chrome.runtime.getURL('catalog.json'));
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+  }
+  return await response.json();
+}
+
+/**
+ * Helper function to find a course using the matching utilities
+ * @param {string} courseCode - Course code to search for
+ * @returns {Promise<Object|null>} Promise resolving to course info or null
+ */
+async function findCourseInCatalog(courseCode) {
+  const data = await fetchCatalogData();
+  return CourseMatchingUtils.findCourseInCatalog(courseCode, data);
+}

@@ -1,14 +1,23 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <!-- Document metadata and character encoding -->
   <meta charset="utf-8">
   <meta name="description" content="Caltech Course Code Tooltip Extension">
   <meta name="author" content="Varun Rodrigues">
+  
+  <!-- External font import for consistent typography -->
   <link href="https://fonts.cdnfonts.com/css/helvetica-neue-5" rel="stylesheet">
+  
+  <!-- Extension-specific styles -->
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
 
+  <!-- 
+    Main Header Section
+    Displays extension branding, status indicator, and catalog year information
+  -->
   <div class="header">
     <div id="header-subtitle" class="header-subtitle">
       Course Lookup and Extension Configurations / <span id="status-text">Loading...</span>
@@ -16,10 +25,16 @@
     <h1 class="header-title">Caltech Catalog Tooltips</h1>
   </div>
 
+  <!-- Catalog year indicator bar for user reference -->
   <div class="catalog-year-bar">
     2025-2026 Catalog
   </div>
 
+  <!-- 
+    Course Lookup Section
+    Provides interactive course search functionality with real-time results
+    Uses accordion pattern for organized, space-efficient display
+  -->
   <div class="accordion-section">
     <div class="accordion-header" data-target="course-lookup-content">
       <h3>Course Lookup</h3>
@@ -27,20 +42,28 @@
     </div>
     <div id="course-lookup-content" class="accordion-content">
       <div class="input-container">
+        <!-- Main search input for course codes -->
         <input type="text" id="course-lookup-input" placeholder="e.g., CS 157, IDS 157">
       </div>
+      <!-- Results display area with placeholder text -->
       <div id="course-lookup-result" >
         <span style="font-size: 12px;">Enter a course code above to see course information.</span>
       </div>
     </div>
   </div>
 
+  <!-- 
+    Settings Configuration Section
+    Contains toggle switches for all tooltip display options
+    Allows users to customize what information appears in tooltips
+  -->
   <div class="accordion-section">
     <div class="accordion-header" data-target="settings-content">
       <h3>Settings</h3>
       <span class="accordion-arrow"></span>
     </div>
     <div id="settings-content" class="accordion-content">
+      <!-- Master toggle for entire extension functionality -->
       <div class="toggle-item">
         <span class="toggle-label">Enable tooltips</span>
         <label class="toggle-switch">
@@ -48,6 +71,8 @@
           <span class="slider"></span>
         </label>
       </div>
+      
+      <!-- Individual content display toggles -->
       <div class="toggle-item">
         <span class="toggle-label">Units</span>
         <label class="toggle-switch">
@@ -86,6 +111,11 @@
     </div>
   </div>
 
+  <!-- 
+    Problem Reporting Section
+    Provides users with clear instructions for reporting issues
+    Includes contact information and guidance for effective bug reports
+  -->
   <div class="accordion-section">
     <div class="accordion-header" data-target="report-problem-content">
       <h3>Report a Problem</h3>
@@ -103,6 +133,7 @@
     </div>
   </div>
 
+  <!-- JavaScript functionality - load config first, then popup logic -->
   <script src="config.js"></script>
   <script src="popup.js"></script>
 </body>
