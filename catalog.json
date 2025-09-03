@@ -811,7 +811,25 @@
         "units": "9 units (3-0-6)",
         "terms": "first, second terms",
         "prerequisites": "AN 14 or PS 12",
-        "description": "Corruption taxes economies and individuals in both the developing and the developed world. We will examine what corruption means in different places and contexts, from grand financial scandals to misappropriation of all manner of public resources. How do we measure corruption? What are its costs and social consequences? What have culture and psychology got to do with it? How much do governance and a free press matter? What are the potential solutions? Students will work closely with the professor to develop an independent and original research project of their choice. Limited enrollment. Not offered 2024-25. APPLIED & COMPUTATIONAL MATH ACM 11. Introduction to Computational Science and Engineering. 6 units (2-2-2); third term. Prerequisites: Ma 1 ab, Co-requisite Ma 1 c. CS 1 or prior programming experience recommended. This course is intended to serve as a practical introduction to the methods of computational science and engineering for students in all majors. The goal is to provide students exposure to and hands-on experience with commonly-used computational methods in science and engineering, with theoretical considerations confined to a level appropriate for first-year undergraduate students. Topics covered include computational simulation by discretization in space and time, numerical solution of linear and nonlinear equations, optimization, uncertainty quantification, and function approximation via interpolation and regression. Emphasis is on understanding trade-offs between computational effort and accuracy, and on developing working knowledge of how these tools can be used to solve a wide range of problems arising in applied math, science, and engineering. Assignments and in-class activities use MATLAB. No prior experience with MATLAB expected",
+        "description": "Corruption taxes economies and individuals in both the developing and the developed world. We will examine what corruption means in different places and contexts, from grand financial scandals to misappropriation of all manner of public resources. How do we measure corruption? What are its costs and social consequences? What have culture and psychology got to do with it? How much do governance and a free press matter? What are the potential solutions? Students will work closely with the professor to develop an independent and original research project of their choice. Limited enrollment. Not offered 2024-25",
+        "instructors": null
+    },
+    {
+        "course_code": {
+            "prefixes": [
+                "ACM"
+            ],
+            "numbers": [
+                "11"
+            ],
+            "letters": []
+        },
+        "course_code_original": "ACM 11",
+        "name": "Introduction to Computational Science and Engineering",
+        "units": "6 units (2-2-2)",
+        "terms": "third term",
+        "prerequisites": "Ma 1 ab, Co-requisite Ma 1 c",
+        "description": "CS 1 or prior programming experience recommended. This course is intended to serve as a practical introduction to the methods of computational science and engineering for students in all majors. The goal is to provide students exposure to and hands-on experience with commonly-used computational methods in science and engineering, with theoretical considerations confined to a level appropriate for first-year undergraduate students. Topics covered include computational simulation by discretization in space and time, numerical solution of linear and nonlinear equations, optimization, uncertainty quantification, and function approximation via interpolation and regression. Emphasis is on understanding trade-offs between computational effort and accuracy, and on developing working knowledge of how these tools can be used to solve a wide range of problems arising in applied math, science, and engineering. Assignments and in-class activities use MATLAB. No prior experience with MATLAB expected",
         "instructors": "Carlson"
     },
     {
@@ -872,7 +890,7 @@
         "units": "12 units (4-0-8)",
         "terms": "second, third terms",
         "prerequisites": "Ma 1 abc, Ma 2 or equivalents",
-        "description": "Complex analysis: analyticity, Laurent series, contour integration, residue calculus. Ordinary differential equations: linear initial value problems, linear boundary value problems, Sturm-Liouville theory, eigenfunction expansions, transform methods, Green's functions. Linear partial differential equations: heat equation, separation of variables, Laplace equation, transform methods, wave equation, method of characteristics, Green's functions",
+        "description": "Complex analysis: analyticity, Laurent series, contour integration, residue calculus. Ordinary differential equations: linear initial value problems, linear boundary value problems, Sturm-Liouville theory, eigenfunction expansions, transform equation, separation of variables, Laplace equation, transform methods, wave equation, method of characteristics, Green's functions",
         "instructors": "Zuev, Hoffmann"
     },
     {
@@ -1104,7 +1122,7 @@
         "units": "9 units (3-0-6)",
         "terms": "third term",
         "prerequisites": "CMS 107a and CMS/ACM 122; or instructor's permission",
-        "description": "The content of this course varies from year to year among advanced subjects in linear algebra, convex analysis, and related fields. Specific topics for the class include matrix analysis, operator theory, convex geometry, or convex algebraic geometry. Lectures and homework will require the ability to understand and produce mathematical proofs. Offered 2024-25",
+        "description": "The content of this course varies from year to year among Specific topics for the class include matrix analysis, operator theory, convex geometry, or convex algebraic geometry. Lectures and homework will require the ability to understand and produce mathematical proofs. Offered 2024-25",
         "instructors": "Tropp"
     },
     {
@@ -1232,7 +1250,7 @@
         "units": "9 units (3-0-6)",
         "terms": "third term",
         "prerequisites": "ACM 95/100 or instructor's permission",
-        "description": "A basic knowledge of probability and statistics as well as transform methods for solving PDEs is assumed. This course develops some of the techniques of stochastic calculus and applies them to the theory of financial asset modeling. The mathematical concepts/tools developed will include introductions to random walks, Brownian motion, quadratic variation, and Ito-calculus. Connections to PDEs will be made by Feynman-Kac theorems. Concepts of risk-neutral pricing and martingale representation are introduced in the pricing of options. Topics covered will be selected from standard options, exotic options, American derivative securities, term-structure models, and jump processes. Not offered 2024-25",
+        "description": "A basic knowledge of probability and statistics as well as transform methods for solving PDEs is assumed. This course develops some of the techniques of stochastic calculus and applies them to the theory of financial asset modeling. The mathematical concepts/tools developed will include and Ito-calculus. Connections to PDEs will be made by Feynman-Kac theorems. Concepts of risk-neutral pricing and martingale representation are introduced in the pricing of options. Topics covered will be selected from standard options, exotic options, American derivative securities, term-structure models, and jump processes. Not offered 2024-25",
         "instructors": "Staff"
     },
     {
@@ -2447,6 +2465,24 @@
     {
         "course_code": {
             "prefixes": [
+                "Ay"
+            ],
+            "numbers": [
+                "190"
+            ],
+            "letters": []
+        },
+        "course_code_original": "Ay 190",
+        "name": "Computational Astrophysics",
+        "units": "9 units (3-0-6)",
+        "terms": "third term",
+        "prerequisites": "Ph 20-22 (undergraduates)",
+        "description": "Introduction to essential numerical analysis and computational methods in astrophysics and astrophysical data analysis. Basic numerical methods and techniques; N-body simulations; fluid dynamics (SPH/grid-based); MHD; radiation transport; reaction networks; data analysis methods; numerical relativity",
+        "instructors": "Hopkins, Most"
+    },
+    {
+        "course_code": {
+            "prefixes": [
                 "Ay",
                 "Ge"
             ],
@@ -2515,6 +2551,24 @@
         "terms": "third term",
         "prerequisites": null,
         "description": "9 units (3-0-6); third term",
+        "instructors": null
+    },
+    {
+        "course_code": {
+            "prefixes": [
+                "Ay"
+            ],
+            "numbers": [
+                "219"
+            ],
+            "letters": []
+        },
+        "course_code_original": "Ay 219",
+        "name": "Elements in the Universe and Galactic Chemical Evolution",
+        "units": "9 units (3-0-6)",
+        "terms": "second term",
+        "prerequisites": "Ay 121, 123, 124, 126",
+        "description": "Survey of the formation of the elements in the universe as a function of cosmic time. Review of the determination of abundances in stars, meteorites, H II regions, and in interstellar and intergalactic gas. Overview of models of galactic chemical evolution. Participants will measure elemental abundances from the Keck spectrum of a star and construct their own numerical chemical evolution models. Not offered 2024-25",
         "instructors": null
     },
     {
@@ -2651,25 +2705,7 @@
         "units": "Units to be arranged",
         "terms": null,
         "prerequisites": null,
-        "description": "Units to be arranged; first, second, third terms. Students may register for research units after consultation with their adviser",
-        "instructors": null
-    },
-    {
-        "course_code": {
-            "prefixes": [
-                "BE"
-            ],
-            "numbers": [
-                "1"
-            ],
-            "letters": []
-        },
-        "course_code_original": "BE 1",
-        "name": "Frontiers in Bioengineering",
-        "units": null,
-        "terms": "first term",
-        "prerequisites": null,
-        "description": "1 unit; first term. A weekly seminar series by Caltech faculty providing an introduction to research directions in the field of bioengineering and an overview of the courses offered in the Bioengineering option. Graded pass/fail",
+        "description": "Units to be arranged; first, second, third terms. Students may register for research units after consultation with BE 1. Frontiers in Bioengineering. 1 unit; first term. A weekly seminar series by Caltech faculty providing an introduction to research directions in the field of bioengineering and an overview of the courses offered in the Bioengineering option. Graded pass/fail",
         "instructors": "Bois"
     },
     {
@@ -3062,6 +3098,24 @@
         "prerequisites": "BE/BI 103 a and BE/BI 103 b or equivalent; or instructor's permission",
         "description": "CMS/CS/CNS/EE/IDS 155 is strongly recommended but not required. This course is a practical introduction to machine learning methods for biological data, focusing on three common data types in biology-images, sequences, and structures. This course will cover how to represent biological data in a manner amenable to machine learning approaches, survey tasks that can be solved with modern deep learning algorithms (e.g. image segmentation, object tracking, sequence classification, protein folding, etc.), explore architectures of deep learning models for each data type, and provide practical guidance for model development. Students will have the opportunity to apply these methods to their own datasets",
         "instructors": "Van Valen"
+    },
+    {
+        "course_code": {
+            "prefixes": [
+                "BE"
+            ],
+            "numbers": [
+                "240"
+            ],
+            "letters": []
+        },
+        "course_code_original": "BE 240",
+        "name": "Special Topics in Bioengineering",
+        "units": "Units and term to be arranged",
+        "terms": "Topics relevant to the general educational goals of the bioengineering option",
+        "prerequisites": null,
+        "description": "Units and term to be arranged; Topics relevant to the general educational goals of the bioengineering option. Graded pass/fail",
+        "instructors": null
     },
     {
         "course_code": {
@@ -3634,6 +3688,25 @@
     {
         "course_code": {
             "prefixes": [
+                "Bi",
+                "BE"
+            ],
+            "numbers": [
+                "177"
+            ],
+            "letters": []
+        },
+        "course_code_original": "Bi/BE 177",
+        "name": "Principles of Modern Microscopy",
+        "units": "9 units (3-0-6)",
+        "terms": "second term",
+        "prerequisites": null,
+        "description": "9 units (3-0-6); second term. Lectures and discussions on the underlying principles behind digital, video, differential interference contrast, phase contrast, confocal, and two-photon microscopy. The course will begin with basic geometric optics and characteristics of lenses and microscopes. Specific attention will be given to how different imaging elements such as filters, detectors, and objective lenses contribute to the final image. Course work will include critical evaluation of published images and design strategies for simple optical systems and the analysis and presentation of two- and three-dimensional images. The role of light microscopy in the history of science will be an underlying theme. No prior knowledge of microscopy will be assumed. Given in alternate years; offered 2024-25",
+        "instructors": "Collazo"
+    },
+    {
+        "course_code": {
+            "prefixes": [
                 "Bi"
             ],
             "numbers": [
@@ -3668,6 +3741,24 @@
         "prerequisites": "Bi 8, CS 2, Ma 3; or BE/Bi 103 a; or instructor's permission",
         "description": "Biology is becoming an increasingly data-intensive science. Many of the data challenges in the biological sciences are distinct from other scientific disciplines because of the complexity involved. This course will introduce key computational, probabilistic, and statistical methods that are common in computational biology and bioinformatics. We will integrate these theoretical aspects to discuss solutions to common challenges that reoccur throughout bioinformatics including algorithms and heuristics for tackling DNA sequence alignments, phylogenetic reconstructions, evolutionary analysis, and population and human genetics. We will discuss these topics in conjunction with common applications including the analysis of high throughput DNA sequencing data sets and analysis of gene expression from RNA-Seq data sets",
         "instructors": "Guttman, Thomson"
+    },
+    {
+        "course_code": {
+            "prefixes": [
+                "Bi"
+            ],
+            "numbers": [
+                "188"
+            ],
+            "letters": []
+        },
+        "course_code_original": "Bi 188",
+        "name": "Human Genetics and Genomics",
+        "units": "6 units (2-0-4)",
+        "terms": "third term",
+        "prerequisites": "Bi 122; or graduate standing and instructor's permission",
+        "description": "Introduction to the genetics of humans. Subjects covered include human genome structure, genetic diseases and predispositions, the human genome project, forensic use of human genetic markers, human variability, and human evolution. Given in alternate years; not offered 2024-25",
+        "instructors": "Wold"
     },
     {
         "course_code": {
@@ -3971,6 +4062,24 @@
                 "Bi"
             ],
             "numbers": [
+                "265"
+            ],
+            "letters": []
+        },
+        "course_code_original": "Bi 265",
+        "name": "Biological Research: Fellowship Application and Science Communication",
+        "units": "6 units (2-3-1)",
+        "terms": "summer term",
+        "prerequisites": null,
+        "description": "6 units (2-3-1); summer term. This course focuses on clear communication of scientific research in grant writing, networking, and research presentation. Practice is obtained through the following facilitated activities: 1) drafting the required statements for an NSF-GRFP proposal, 2) developing a networking pitch for use with non-scientists and second year graduate students, senior undergrads, and rising senior undergrads can enroll",
+        "instructors": "Hoy"
+    },
+    {
+        "course_code": {
+            "prefixes": [
+                "Bi"
+            ],
+            "numbers": [
                 "270"
             ],
             "letters": [
@@ -3984,6 +4093,42 @@
         "prerequisites": null,
         "description": "Units to be arranged each term; first, second, third terms. Students may register with permission of the responsible faculty member",
         "instructors": null
+    },
+    {
+        "course_code": {
+            "prefixes": [
+                "Bi"
+            ],
+            "numbers": [
+                "299"
+            ],
+            "letters": []
+        },
+        "course_code_original": "Bi 299",
+        "name": "Graduate Research",
+        "units": "Units to be arranged",
+        "terms": null,
+        "prerequisites": null,
+        "description": "Units to be arranged; first, second, third terms. Students may register for research units after consultation with their adviser",
+        "instructors": null
+    },
+    {
+        "course_code": {
+            "prefixes": [
+                "BEM"
+            ],
+            "numbers": [
+                "97"
+            ],
+            "letters": []
+        },
+        "course_code_original": "BEM 97",
+        "name": "Undergraduate Research",
+        "units": "Units to be arranged",
+        "terms": null,
+        "prerequisites": "advanced BEM and instructor's permission",
+        "description": "This course offers advanced undergraduates the opportunity to pursue research on a business problem individually or in a small group. Graded pass/fail",
+        "instructors": "Staff"
     },
     {
         "course_code": {
@@ -4125,8 +4270,8 @@
         "name": "Mathematical Models in Fintech",
         "units": "9 units (3-0-6)",
         "terms": "third term",
-        "prerequisites": "Some knowledge of game theory and optimization is helpful, BEM 103 Introduction to Finance is recommended, and a calculus-based course in probability is required",
-        "description": "In this course we will go over recent works on topics broadly contained in the newly emerging field of Fintech. In particular, the topics include mathematical modeling of strategic actions of agents interacting via a blockchain technology, via crowdfunding platforms, and via online investment platforms (\"robo-advisors\"). Not offered 2024-25",
+        "prerequisites": "Some knowledge of game theory and optimization is helpful, BEM 103 Introduction to Finance is recommended, and a over recent works on topics broadly contained in the newly emerging field of Fintech",
+        "description": "In particular, the topics include mathematical modeling of strategic actions of agents interacting via a blockchain technology, via crowdfunding platforms, and via online investment platforms (\"robo-advisors\"). Not offered 2024-25",
         "instructors": null
     },
     {
@@ -4252,7 +4397,7 @@
         "units": "9 units (3-0-6)",
         "terms": "second term",
         "prerequisites": "Ec 11 or equivalent",
-        "description": "This course will serve as an introduction to the American legal system emphasizing concepts which students are likely to encounter in their professional lives such as Constitutional law (federalism; states\u00e2 rights; structure of court systems), dispute resolution (litigation; mediation; arbitration), contracts (elements; defenses to formation; remedies), employment law, business associations (partnerships; corporations; LLCs), securities regulation, and intellectual property (patents; trademarks; trade secrets; copyrights). By learning to identify issues which would alert one to the need for a lawyer, the class will sensitize students to key legal issues they may Business Economics & Management 5 encounter in the normal course of business. Textbook reading and lectures will be supplemented by practicing lawyers expert in their field of business law as guest speakers",
+        "description": "This course will serve as an introduction to the American legal system emphasizing concepts which students are likely to encounter in their professional lives such as Constitutional law (federalism; states\u00e2 rights; structure of court systems), dispute resolution (litigation; mediation; arbitration), contracts (elements; defenses to formation; remedies), employment law, business associations (partnerships; corporations; LLCs), securities regulation, and intellectual property (patents; trademarks; trade secrets; copyrights). By learning to identify issues which would alert one to the need for a lawyer, the class will sensitize students to key legal issues they may 5 encounter in the normal course of business. Textbook reading and lectures will be supplemented by practicing lawyers expert in their field of business law as guest speakers",
         "instructors": "McAniff"
     },
     {
@@ -4859,6 +5004,26 @@
         "prerequisites": "ACM 95/100 and ChE 151 ab or instructor's permission",
         "description": "May be repeated for credit. Advanced problems in heat, mass, and momentum transfer. Introduction to mechanics of complex fluids; physicochemical hydrodynamics; microstructured fluids; colloidal dispersions and active matter. Other topics may be discussed depending on class needs and interests. Not offered 2024-25",
         "instructors": null
+    },
+    {
+        "course_code": {
+            "prefixes": [
+                "ChE",
+                "BE",
+                "MedE"
+            ],
+            "numbers": [
+                "188"
+            ],
+            "letters": []
+        },
+        "course_code_original": "ChE/BE/MedE 188",
+        "name": "Molecular Imaging",
+        "units": "9 units (3-0-6)",
+        "terms": "second term",
+        "prerequisites": "Ch/Bi 110, ChE 101 and ACM 95 or equivalent",
+        "description": "This course will cover the basic principles of biological and medical imaging technologies including magnetic resonance, ultrasound, nuclear imaging, fluorescence, bioluminescence and photoacoustics, and the design of chemical and biological probes to obtain molecular information about living systems using these modalities. Topics will include nuclear spin behavior, sound wave propagation, radioactive decay, photon absorption and scattering, spatial encoding, image reconstruction, statistical analysis, and molecular contrast mechanisms. The design of molecular imaging agents for biomarker detection, cell tracking, and dynamic imaging of cellular signals will be analyzed in terms of detection limits, kinetics, and biological effects. Participants in the course will develop proposals for new molecular imaging agents for applications such as functional brain imaging, cancer diagnosis, and cell therapy. Not offered 2024-25",
+        "instructors": "Shapiro"
     },
     {
         "course_code": {
@@ -5683,6 +5848,24 @@
                 "Ch"
             ],
             "numbers": [
+                "143"
+            ],
+            "letters": []
+        },
+        "course_code_original": "Ch 143",
+        "name": "NMR Spectroscopy for Structural Identification",
+        "units": "9 units (3-0-6)",
+        "terms": "third term",
+        "prerequisites": "Ch 41 abc",
+        "description": "This course will address both one-dimensional and two-dimensional techniques in NMR spectroscopy which are essential to elucidating structures of organic and organometallic samples. Dynamic NMR phenomena, multinuclear, paramagnetic and NOE effects will also be covered. An extensive survey of multipulse NMR methods will also contribute to a clear understanding of two-dimensional experiments. (Examples for Varian NMR instrumentation will be included.) Not offered 2024-25",
+        "instructors": "Virgil"
+    },
+    {
+        "course_code": {
+            "prefixes": [
+                "Ch"
+            ],
+            "numbers": [
                 "144"
             ],
             "letters": [
@@ -6251,6 +6434,26 @@
         "name": "Research in Civil Engineering",
         "units": "Hours and units by arrangement",
         "terms": "Research in the field of civil engineering",
+        "prerequisites": null,
+        "description": "Hours and units by arrangement; Research in the field of civil engineering. By arrangements with members of the staff, properly qualified graduate students are directed in research",
+        "instructors": null
+    },
+    {
+        "course_code": {
+            "prefixes": [
+                "CNS"
+            ],
+            "numbers": [
+                "99"
+            ],
+            "letters": [
+                "abc"
+            ]
+        },
+        "course_code_original": "CNS 99 abc",
+        "name": "Senior Thesis",
+        "units": "9 or more units per term with a total of at least 27 units",
+        "terms": "first, second, third terms",
         "prerequisites": "Senior standing and instructor's permission",
         "description": "Research in the broader CNS range, supervised by a CNS faculty member, culminating in a thesis. The topic is determined by the research adviser and the student. The first and second terms are taken pass/fail and require a written report at the end of each term. The third term is taken on grades and requires completion of a thesis and final presentation. The last two terms must be completed in the final year of study. Total units may be arranged with the advising faculty member. Optional requirement for a BS degree (CNS major). It can be replaced by equivalent research or elective units",
         "instructors": "Staff"
@@ -6399,6 +6602,29 @@
         "prerequisites": "introductory neuroscience (Bi 150 or equivalent); mathematical methods (Bi 195 or equivalent); scientific programming",
         "description": "This course aims at a quantitative understanding of how the nervous system computes. The goal is to link phenomena across scales from membrane proteins to cells, circuits, brain systems, and behavior. We will learn how to formulate these connections in terms of mathematical models, how to test these models experimentally, and how to interpret experimental data quantitatively. The concepts will be developed with motivation from some of the fascinating phenomena of animal behavior, such as: aerobatic control of insect flight, precise localization of sounds, sensing of single photons, reliable navigation and homing, rapid decision-making during escape, one-shot learning, and large-capacity recognition memory. Not offered 2024-25",
         "instructors": "Meister"
+    },
+    {
+        "course_code": {
+            "prefixes": [
+                "BE",
+                "CS",
+                "CNS",
+                "Bi"
+            ],
+            "numbers": [
+                "191"
+            ],
+            "letters": [
+                "ab"
+            ]
+        },
+        "course_code_original": "BE/CS/CNS/Bi 191 ab",
+        "name": "Biomolecular Computation",
+        "units": "9 units (3-0-6) a",
+        "terms": "",
+        "prerequisites": null,
+        "description": "9 units (3-0-6) a",
+        "instructors": null
     },
     {
         "course_code": {
@@ -6929,6 +7155,25 @@
         "course_code": {
             "prefixes": [
                 "CS",
+                "Ph"
+            ],
+            "numbers": [
+                "120"
+            ],
+            "letters": []
+        },
+        "course_code_original": "CS/Ph 120",
+        "name": "Quantum Cryptography",
+        "units": "9 units (3-0-6)",
+        "terms": "first term",
+        "prerequisites": "Ma 1 b, Ph 2 b or Ph 12 b, CS 21, CS 38 or equivalent recommended (or instructor's permission)",
+        "description": "This course is an introduction to quantum cryptography: how to use quantum effects, such as quantum entanglement and uncertainty, to implement cryptographic tasks with levels of security that are impossible to achieve classically. The course covers the fundamental ideas of quantum information that form the basis for quantum cryptography, such as entanglement and quantifying quantum knowledge. We will introduce the security definition for quantum key distribution and see protocols and proofs of security for this task. We will also discuss the basics of device-independent quantum cryptography as well as other cryptographic tasks and protocols, such as bit commitment or position-based cryptography. Not offered 2024-25",
+        "instructors": "Staff"
+    },
+    {
+        "course_code": {
+            "prefixes": [
+                "CS",
                 "IDS"
             ],
             "numbers": [
@@ -7150,6 +7395,25 @@
         "course_code": {
             "prefixes": [
                 "CS",
+                "Ec"
+            ],
+            "numbers": [
+                "149"
+            ],
+            "letters": []
+        },
+        "course_code_original": "CS/Ec 149",
+        "name": "Algorithmic Economics",
+        "units": "9 units (3-0-6)",
+        "terms": "third term",
+        "prerequisites": null,
+        "description": "9 units (3-0-6); third term. This course will equip students to engage with active research at the intersection of social and information sciences, including: algorithmic game theory and mechanism design; auctions; matching markets; and learning in games",
+        "instructors": "Niemeyer"
+    },
+    {
+        "course_code": {
+            "prefixes": [
+                "CS",
                 "IDS"
             ],
             "numbers": [
@@ -7354,7 +7618,26 @@
         "course_code_original": "ME/CS/EE 169",
         "name": "Mobile Robots",
         "units": "9 units (1-7-1)",
-        "terms": "For course description, CS/CNS 171",
+        "terms": "For course description,",
+        "prerequisites": null,
+        "description": "9 units (1-7-1); For course description,",
+        "instructors": null
+    },
+    {
+        "course_code": {
+            "prefixes": [
+                "CS",
+                "CNS"
+            ],
+            "numbers": [
+                "171"
+            ],
+            "letters": []
+        },
+        "course_code_original": "CS/CNS 171",
+        "name": "Computer Graphics Laboratory",
+        "units": "12 units (3-6-3)",
+        "terms": "first term",
         "prerequisites": "Extensive programming experience and proficiency in linear algebra, starting with CS 2 and Ma 1 b",
         "description": "This is a challenging course that introduces the basic ideas behind computer graphics and some of its fundamental algorithms. Topics include graphics input and output, the graphics pipeline, sampling and image manipulation, three-dimensional transformations and interactive modeling, basics of physically based modeling and animation, simple shading models and their hardware implementation, and some of the fundamental algorithms of scientific visualization. Students will be required to perform significant implementations",
         "instructors": "Barr"
@@ -7490,6 +7773,29 @@
         "prerequisites": null,
         "description": "Units (total of 45) are determined in accordance with work accomplished",
         "instructors": "Staff"
+    },
+    {
+        "course_code": {
+            "prefixes": [
+                "BE",
+                "CS",
+                "CNS",
+                "Bi"
+            ],
+            "numbers": [
+                "191"
+            ],
+            "letters": [
+                "ab"
+            ]
+        },
+        "course_code_original": "BE/CS/CNS/Bi 191 ab",
+        "name": "Biomolecular Computation",
+        "units": "9 units (3-0-6) a",
+        "terms": "",
+        "prerequisites": null,
+        "description": "9 units (3-0-6) a",
+        "instructors": null
     },
     {
         "course_code": {
@@ -7801,9 +8107,29 @@
         "name": "Research in Computing and Mathematical Sciences",
         "units": "Hours and units by arrangement",
         "terms": "Research in the field of computing and mathematical science",
+        "prerequisites": null,
+        "description": "Hours and units by arrangement; Research in the field of computing and mathematical science. By arrangement with members of the staff, properly qualified graduate students are directed in research",
+        "instructors": "Staff"
+    },
+    {
+        "course_code": {
+            "prefixes": [
+                "CDS"
+            ],
+            "numbers": [
+                "90"
+            ],
+            "letters": [
+                "abc"
+            ]
+        },
+        "course_code_original": "CDS 90 abc",
+        "name": "Senior Thesis in Control and Dynamical Systems",
+        "units": "9 units (0-0-9)",
+        "terms": "first, second, third terms",
         "prerequisites": "CDS 110 or CDS 112 (may be taken concurrently)",
-        "description": null,
-        "instructors": "Staff. CONTROL & DYNAMICAL SYSTEMS CDS 90 abc. Senior Thesis in Control and Dynamical Systems. 9 units (0-0-9); first, second, third terms. Prerequisites: CDS 110 or CDS 112 (may be taken concurrently). Research in control and dynamical systems, supervised by a Caltech faculty member. The topic selection is determined by the adviser and the student and is subject to approval by the CDS faculty. First and second terms: midterm progress report and oral presentation during finals week. Third term: completion of thesis and final presentation"
+        "description": "Research in control and dynamical systems, supervised by a Caltech faculty member. The topic selection is determined by the adviser and the student and is subject to approval by the CDS faculty. First and second terms: midterm progress report and oral presentation during finals week. Third term: completion of thesis and final presentation. Not offered on a pass/fail basis",
+        "instructors": "Staff"
     },
     {
         "course_code": {
@@ -7856,25 +8182,7 @@
         "units": "Units to be arranged",
         "terms": null,
         "prerequisites": "CDS 110",
-        "description": "Research project in control and dynamical systems, supervised by a CDS faculty member",
-        "instructors": "Staff"
-    },
-    {
-        "course_code": {
-            "prefixes": [
-                "CDS"
-            ],
-            "numbers": [
-                "212"
-            ],
-            "letters": []
-        },
-        "course_code_original": "CDS 212",
-        "name": "Optimal Control and Estimation",
-        "units": "9 units (3-0-6)",
-        "terms": "third term",
-        "prerequisites": "CDS 110 (or equivalent) and CDS 131",
-        "description": "Advanced topics in optimization-based design of control, optimal control, and estimation/filtering. Optimal control theory using calculus of variations, Hamilton-Jacobi-Bellman equation, Pontryagin's maximum principle, and optimal control applications including reinforcement learning and model predictive control. Kalman filtering, Bayesian filtering, and nonlinear filtering methods for autonomous systems",
+        "description": "Research project in control and dynamical systems, supervised by a CDS 212. Optimal Control and Estimation. 9 units (3-0-6); third term. Prerequisites: CDS 110 (or equivalent) and CDS 131. Advanced topics in optimization-based design of control, optimal control, and estimation/filtering. Optimal control theory using calculus of variations, Hamilton-Jacobi-Bellman equation, Pontryagin's maximum principle, and optimal control applications including reinforcement learning and model predictive control. Kalman filtering, Bayesian filtering, and nonlinear filtering methods for autonomous systems",
         "instructors": "Chung"
     },
     {
@@ -8035,10 +8343,10 @@
         },
         "course_code_original": "CDS 300 abc",
         "name": "Research in Control and Dynamical Systems",
-        "units": "Hours and units by arrangement",
-        "terms": "Research in the field of control and dynamical systems",
+        "units": null,
+        "terms": null,
         "prerequisites": null,
-        "description": "Hours and units by arrangement; Research in the field of control and dynamical systems. By arrangement with members of the staff, properly qualified graduate students are directed in research",
+        "description": "Hours and systems. By arrangement with members of the staff, properly qualified graduate students are directed in research",
         "instructors": "Staff"
     },
     {
@@ -8448,6 +8756,26 @@
         "prerequisites": "Ec 11; Ec 122 recommended",
         "description": "This course examines the contemporary literature on economic growth and development from both a theoretical and historical/empirical perspective. Topics include a historical overview of economic progress and the lack thereof; simple capital accumulation models; equilibrium/ planning models of accumulation; endogenous growth models; empirical tests of convergence; the measurement and role of technological advancement; and the role of trade, institutions, property rights, human capital, and culture. Not offered 2024-25",
         "instructors": null
+    },
+    {
+        "course_code": {
+            "prefixes": [
+                "Ec"
+            ],
+            "numbers": [
+                "181"
+            ],
+            "letters": [
+                "ab"
+            ]
+        },
+        "course_code_original": "Ec 181 ab",
+        "name": "Convex Analysis and Economic Theory",
+        "units": "9 units (3-0-6)",
+        "terms": "third term",
+        "prerequisites": "Ma 1",
+        "description": "Ec 121 a is recommended. Introduction to the use of convex analysis in economic theory. Includes separating hyperplane theorems, continuity and differentiability properties of convex and concave functions, support functions, subdifferentials, Fenchel conjugates, saddlepoint theorem, theorems of the alternative, polyhedra, linear programming, and duality in graphs. Introduction to discrete convex analysis and matroids. Emphasis is on the finite-dimensional case, but infinite-dimensional spaces will be discussed. Applications to core convergence, cost and production functions, mathematical finance, decision theory, incentive design, and game theory. Part b not offered 2024-25",
+        "instructors": "Tamuz"
     },
     {
         "course_code": {
@@ -9335,6 +9663,65 @@
     {
         "course_code": {
             "prefixes": [
+                "ME",
+                "CS",
+                "EE"
+            ],
+            "numbers": [
+                "169"
+            ],
+            "letters": []
+        },
+        "course_code_original": "ME/CS/EE 169",
+        "name": "Mobile Robots",
+        "units": "9 units (1-7-1)",
+        "terms": "For course description,",
+        "prerequisites": null,
+        "description": "9 units (1-7-1); For course description,",
+        "instructors": null
+    },
+    {
+        "course_code": {
+            "prefixes": [
+                "EE",
+                "CS",
+                "MedE"
+            ],
+            "numbers": [
+                "175"
+            ],
+            "letters": []
+        },
+        "course_code_original": "EE/CS/MedE 175",
+        "name": "Advanced Topics in Digital Design with FPGAs and VHDL",
+        "units": "9 units (3-6-0)",
+        "terms": "third term",
+        "prerequisites": "EE/CS/MedE 125 or equivalent",
+        "description": "Quick review of the VHDL language and RTL concepts. Dealing with sophisticated, multi-dimensional data types in VHDL. Dealing with multiple time domains. Transfer of control versus data between clock domains. Clock division and multiplication. Using PLLs. Dealing with global versus local and synchronous versus asynchronous resets. How to measure maximum speed in FPGAs (for both registered and unregistered circuits). The (often) hard task of time closure. The subtleties of the time behavior in state machines (a major source of errors in large, complex designs). Introduction to simulation. Construction of VHDL testbenches for automated testing. Dealing with files in simulation. All designs are physically implemented using FPGA boards. Not offered 2024-25",
+        "instructors": "Staff"
+    },
+    {
+        "course_code": {
+            "prefixes": [
+                "EE",
+                "APh"
+            ],
+            "numbers": [
+                "180"
+            ],
+            "letters": []
+        },
+        "course_code_original": "EE/APh 180",
+        "name": "Nanotechnology",
+        "units": "6 units (3-0-3)",
+        "terms": "first term",
+        "prerequisites": null,
+        "description": "6 units (3-0-3); first term. This course will explore the techniques and applications of nanofabrication and miniaturization of devices to the smallest scale. It will be focused on the understanding of the technology of miniaturization, its history and present trends towards building devices and structures on the nanometer scale. Technology and instrumentation for nanofabrication as well as future trends will be described. Examples of applications of nanotechnology in the electronics, communications, data storage, sensing and biotechnology will be analyzed. Students will understand the underlying physics and technology, as well as limitations of miniaturization",
+        "instructors": "Scherer"
+    },
+    {
+        "course_code": {
+            "prefixes": [
                 "EE",
                 "MedE"
             ],
@@ -9349,6 +9736,25 @@
         "terms": "second term",
         "prerequisites": "APh/EE 9 or instructor's permission",
         "description": "Micro/nano technology is indispensable for making advanced semiconductor devices. This course is designed to cover the state-of-the-art micro/nanotechnologies for the fabrication of VLSI/ULSI including BJT, CMOS, and BiCMOS. This course will emphasize fundamental science and technology used in modern semiconductor devices. Topics of technology will include cleaning, chemical etching, oxidation, diffusion, plasma etching, reactive ion etching (RIE), focused ion-beam (FIB) etching, thin-film deposition, metallization, advanced photolithography, etc",
+        "instructors": "Tai"
+    },
+    {
+        "course_code": {
+            "prefixes": [
+                "EE",
+                "MedE"
+            ],
+            "numbers": [
+                "187"
+            ],
+            "letters": []
+        },
+        "course_code_original": "EE/MedE 187",
+        "name": "MEMS/NEMS Technologies for Biomedical Devices",
+        "units": "9 units (3-0-6)",
+        "terms": "second term",
+        "prerequisites": "APh/EE 9 or instructor's permission",
+        "description": "MEMS/NEMS technologies are useful to make advanced devices for such as electronics, optics, sensors, actuators and medicine. This course will emphasize the sciences and fundamentals of selected MEMS/NEMS technologies which enable micro 3D biomedical devices. For example, covered technologies include 3D wet isotropic/anisotropic chemical etching, bulk and surface micromachining (e.g., EDP, KOH and DRIE etching), wafer bonding, micro/nano molding and other advanced packaging techniques. This course covers many MEMS/NEMS devices but will emphasize their biomedical applications such as pressure sensors, microfluidics, accelerometers/gyros, lab-on-chips, micro total-analysis system, neuromodulation devices, biomedical implants, etc",
         "instructors": "Tai"
     },
     {
@@ -10517,7 +10923,25 @@
         "units": "6 units (3-0-3)",
         "terms": "third term",
         "prerequisites": null,
-        "description": "6 units (3-0-3); third term. This course aims to provide a strong scientific writing foundation for multilingual or international graduate students through guided instruction in academic STEM writing. More specifically, it teaches graduate students about composing texts in scientific English for various audiences, focusing on issues of clarity, as well as grammar and usage. It helps familiarize writers with the features of clear and effective STEM writing, and it teaches writers about the style and genres of U.S. academic STEM writing, helping them learn to read and write about the work of others in their field. Students are encouraged to take ESL/Wr 107 in the first or second year of graduate school. ENVIRONMENTAL SCIENCE & ESE 1. Earth's Climate. 9 units (3-0-6); third term. An introduction to climate on Earth. How Earth's climate has changed in the past and its evolving response to the rapid increase in carbon dioxide and methane happening today. Model projections of future climate and associated risks. Development of climate policies in face of uncertainty in these projections and risks. Enrollment is limited. Satisfies the menu requirement of the Caltech core curriculum. Juniors and Seniors who have satisfied their menu course requirement should enroll in ESE 101",
+        "description": "6 units (3-0-3); third term. This course aims to provide a strong scientific writing foundation for multilingual or international graduate students through guided instruction in academic STEM writing. More specifically, it teaches graduate students about composing texts in scientific English for various audiences, focusing on issues of clarity, as well as grammar and usage. It helps familiarize writers with the features of clear and effective STEM writing, and it teaches writers about the style and genres of U.S. academic STEM writing, helping them learn to read and write about the work of others in their field. Students are encouraged to take ESL/Wr 107 in the first or second year of graduate school",
+        "instructors": null
+    },
+    {
+        "course_code": {
+            "prefixes": [
+                "ESE"
+            ],
+            "numbers": [
+                "1"
+            ],
+            "letters": []
+        },
+        "course_code_original": "ESE 1",
+        "name": "Earth's Climate",
+        "units": "9 units (3-0-6)",
+        "terms": "third term",
+        "prerequisites": null,
+        "description": "9 units (3-0-6); third term. An introduction to climate on Earth. How Earth's climate has changed in the past and its evolving response to the rapid increase in carbon dioxide and methane happening today. Model projections of future climate and associated risks. Development of climate policies in face of uncertainty in these projections and risks. Enrollment is limited. Satisfies the menu requirement of the Caltech core curriculum. Juniors and Seniors who have satisfied their menu course requirement should enroll in ESE 101",
         "instructors": "Wennberg"
     },
     {
@@ -10626,7 +11050,7 @@
         "units": "9 units (3-0-6)",
         "terms": "first term",
         "prerequisites": null,
-        "description": "9 units (3-0-6); first term. This course will provide a basic introduction to physical, chemical, and biological properties of Earth's ocean. The course is divided into three parts that address various aspects of the marine carbon cycle, including carbon and tracer transport by the ocean circulation, carbonate chemistry, and fixation/respiration of carbon by biological processes. These parts are tied to three key questions that highlight the ocean's role in the global climate system: What processes contribute to changes in global and local sea level? How and where does the ocean exchange carbon dioxide with the atmosphere? Why is a warming climate associated with ocean acidification and what are the biological consequences? The course will also provide perspectives on how we observe and model the ocean and how these tools are used in climate predictions",
+        "description": "9 units (3-0-6); first term. This course will provide a basic introduction to physical, chemical, and biological properties of Earth's ocean. The course is divided into three parts that and tracer transport by the ocean circulation, carbonate chemistry, and fixation/respiration of carbon by biological processes. These parts are tied to three key questions that highlight the ocean's role in the global climate system: What processes contribute to changes in global and local sea level? How and where does the ocean exchange carbon dioxide with the atmosphere? Why is a warming climate associated with ocean acidification and what are the biological consequences? The course will also provide perspectives on how we observe and model the ocean and how these tools are used in climate predictions",
         "instructors": "Thompson"
     },
     {
@@ -10664,6 +11088,24 @@
         "prerequisites": null,
         "description": "1 unit; second term. Discussion of current research by ESE graduate students, faculty, and staff",
         "instructors": "Callies"
+    },
+    {
+        "course_code": {
+            "prefixes": [
+                "ESE"
+            ],
+            "numbers": [
+                "106"
+            ],
+            "letters": []
+        },
+        "course_code_original": "ESE 106",
+        "name": "Research in Environmental Science and Engineering",
+        "units": "Units by arrangement",
+        "terms": "any term",
+        "prerequisites": "instructor's permission",
+        "description": "Exploratory research for first-year graduate students and qualified undergraduates. Graded pass/fail",
+        "instructors": "Staff"
     },
     {
         "course_code": {
@@ -10772,7 +11214,7 @@
         "units": "9 units (3-0-6)",
         "terms": "third term",
         "prerequisites": "ESE 101 or instructor's permission",
-        "description": "Introduction to the dynamics controlling boundary layers and clouds and how they may change with climate, from a phenomenological overview of cloud and boundary layer morphologies to closure theories for turbulence and convection. Topics include similarity theories for boundary layers; mixed-layer models; moist thermodynamics and stability; stratocumulus and trade-cumulus boundary layers; shallow cumulus convection and deep convection",
+        "description": "Introduction to the dynamics controlling boundary layers and clouds and how they may change with climate, from a phenomenological overview of cloud and boundary layer morphologies to closure theories for turbulence and mixed-layer models; moist thermodynamics and stability; stratocumulus and trade-cumulus boundary layers; shallow cumulus convection and deep convection",
         "instructors": "Schneider"
     },
     {
@@ -10900,7 +11342,7 @@
         "units": "9 units (3-0-6)",
         "terms": "first term",
         "prerequisites": "ESE 101 or instructor's permission",
-        "description": "An introduction into methods to quantify trace gases as well as vegetation properties remotely (from space, air-borne or ground-based). This course will provide the basic concepts of remote sensing, using hands-on examples to be solved in class and as problem-sets. Topics covered include Absorption spectroscopy, measurement and modeling techniques, optimal estimation theory and error characterization, applications in global studies of biogeochemical cycles and air pollution/quality. This course is complementary to EE/Ae 157 ab and Ge/EE/ESE 157 c with stronger emphasis on applications for the atmosphere and biosphere. Students will work with real and synthetic remote sensing data (basic knowledge of a scripting language is required, most of the examples will be in Julia)",
+        "description": "An introduction into methods to quantify trace gases as well as vegetation properties remotely (from space, air-borne or ground-based). This course will provide the basic concepts of remote sensing, using hands-on examples to be solved in class and as problem-sets. Topics techniques, optimal estimation theory and error characterization, applications in global studies of biogeochemical cycles and air pollution/quality. This course is complementary to EE/Ae 157 ab and Ge/EE/ESE 157 c with stronger emphasis on applications for the atmosphere and biosphere. Students will work with real and synthetic remote sensing data (basic knowledge of a scripting language is required, most of the examples will be in Julia)",
         "instructors": "Frankenberg"
     },
     {
@@ -11058,8 +11500,8 @@
         "units": "3 units (3-0-0)",
         "terms": "second term",
         "prerequisites": null,
-        "description": "3 units (3-0-0); second term. Climate change has already begun to impact life on the planet, and will continue in the coming decades. This class will explore particular causes and impacts of climate change, technologies to mitigate or adapt to those impacts, and the economic and social costs associated with them - particular focus will be paid to distributional issues, environmental and racial justice and equity intersections. The course will consist of 3-4 topical modules, each focused on a specific impact or sector (e.g. the electricity or transportation sector, climate impacts of food and agriculture, increasing fires and floods). Each module will contain lectures/content on the associated climate science background, engineering/technological developments to combat the issue, and an exploration of the economics and the inequities that exacerbate the situation, followed by group discussion and synthesis of the different perspectives",
-        "instructors": "Wennberg, Staff"
+        "description": "3 units (3-0-0); second term. Climate change has already begun to impact life on the planet, and will continue in the coming decades. This class will explore particular causes and impacts of climate change, technologies to mitigate or adapt to those impacts, and the economic and social costs associated with them - particular focus will be paid to distributional issues, environmental and racial justice and equity intersections. The course will consist of 3-4 topical modules, each focused on a specific impact or sector (e.g. the electricity or transportation sector, climate impacts of food and agriculture, increasing fires and floods). Each module will contain lectures/content on the associated climate science background, engineering/technological developments to combat the issue, and an exploration of the economics and the inequities that exacerbate the situation, followed by group discussion and synthesis of the different perspectives. Instructors:",
+        "instructors": null
     },
     {
         "course_code": {
@@ -11433,6 +11875,24 @@
                 "Ge"
             ],
             "numbers": [
+                "40"
+            ],
+            "letters": []
+        },
+        "course_code_original": "Ge 40",
+        "name": "Special Problems for Undergraduates",
+        "units": "Units to be arranged",
+        "terms": null,
+        "prerequisites": null,
+        "description": "Units to be arranged; any term. This course provides a mechanism for undergraduates to undertake honors-type work in the geologic sciences. By arrangement with individual members of the staff. Graded pass/fail",
+        "instructors": null
+    },
+    {
+        "course_code": {
+            "prefixes": [
+                "Ge"
+            ],
+            "numbers": [
                 "41"
             ],
             "letters": [
@@ -11518,6 +11978,24 @@
         "prerequisites": "instructor's permission",
         "description": "Lectures about the interaction and coevolution of life and Earth surface environments. We will cover essential concepts and major outstanding questions in the field of geobiology, and introduce common approaches to solving these problems. Topics will include biological fractionation of stable isotopes; history and operation of the carbon and sulfur cycles; evolution of oxygenic photosynthesis; biomineralization; mass extinctions; analyzing biodiversity data; constructing simple mathematical models constrained by isotope mass balance; working with public databases of genetic information; phlyogenetic techniques; microbial and molecular evolution",
         "instructors": "Fischer"
+    },
+    {
+        "course_code": {
+            "prefixes": [
+                "Ge"
+            ],
+            "numbers": [
+                "106"
+            ],
+            "letters": []
+        },
+        "course_code_original": "Ge 106",
+        "name": "Introduction to Structural Geology",
+        "units": "9 units (3-0-6)",
+        "terms": "second term",
+        "prerequisites": "Ge 11 ab",
+        "description": "Description and origin of main classes of deformational structures. Introduction to continuum mechanics and its application to rock deformation. Interpretation of the record of deformation of the earth's crust and upper mantle on microscopic, mesoscopic, and megascopic scales. Introduction to the tectonics of mountain belts",
+        "instructors": "Avouac"
     },
     {
         "course_code": {
@@ -12139,6 +12617,25 @@
     {
         "course_code": {
             "prefixes": [
+                "Ge",
+                "ESE"
+            ],
+            "numbers": [
+                "143"
+            ],
+            "letters": []
+        },
+        "course_code_original": "Ge/ESE 143",
+        "name": "Organic Geochemistry",
+        "units": "9 units (3-2-4)",
+        "terms": "third term",
+        "prerequisites": "Ch 41 a or equivalent",
+        "description": "Main topics include the analysis, properties, sources, and cycling of natural organic materials in the environment, from their production in living organisms to burial and decomposition in sediments and preservation in the rock record. Specific topics include analytical methods for organic geochemistry, lipid structure and biochemistry, composition of organic matter, factors controlling organic preservation, organic climate and CO2 proxies, diagenesis and catagenesis, and biomarkers for ancient life. A laboratory component (three evening labs) teaches the extraction and analysis of modern and ancient organic biomarkers by GC/MS. Class includes a mandatory one-day (weekend) field trip to observe the Monterey Formation",
+        "instructors": "Sessions"
+    },
+    {
+        "course_code": {
+            "prefixes": [
                 "Ge"
             ],
             "numbers": [
@@ -12153,6 +12650,28 @@
         "prerequisites": null,
         "description": "9 units (1-4-4); first term. This class provides a hands-on introduction to the construction and operating principles of instrumentation used for isotope-ratio mass spectrometry. The class is structured as a 1-hour lecture plus 4-hour lab each week examining the major subsystems of an IRMS, including vacuum systems, ionization source, mass analyzer, and detector. Laboratories involve hands-on deconstruction and re-assembly of a retired IRMS instrument to examine its components. Course is limited to 6 students at the discretion of the instructor, with preference given to graduate students using this instrumentation in their research. Taught in odd years; not offered 2024-25",
         "instructors": "Sessions"
+    },
+    {
+        "course_code": {
+            "prefixes": [
+                "Ge",
+                "Bi",
+                "BE",
+                "CNS",
+                "ESE"
+            ],
+            "numbers": [
+                "147"
+            ],
+            "letters": []
+        },
+        "course_code_original": "Ge/Bi/BE/CNS/ESE 147",
+        "name": "Challenges and Opportunities in Quantitative Ecology",
+        "units": "6 units (6-0-0)",
+        "terms": "third term",
+        "prerequisites": null,
+        "description": "6 units (6-0-0); third term. Ecosystems are defined by dynamical interactions between groups of organisms, the communities they constitute, and the physical and chemical conditions and processes occurring in the environment. These dynamics are complex and multiscale across both length and time. This course will explore quantitative approaches that observe, measure, model, and monitor ecosystems and the services that they provide society-and the emerging opportunities that could employ these approaches to improve and strengthen global sustainability when it comes to our own ecology. This course will feature lectures each week from different members of the Caltech faculty working on ecological problems from different angles in order to illustrate how fresh insights can emerge by drawing on diverse ways-of-knowing. Given in alternate years; not offered 2024-25",
+        "instructors": "Fischer, Tejada"
     },
     {
         "course_code": {
@@ -12454,6 +12973,24 @@
         "prerequisites": "either ESE/Bi 166 or ESE/Bi 168 recommended",
         "description": "Structural, phylogenetic, and metabolic diversity of microorganisms in nature. The course explores microbial interactions, relationships between diversity and physiology in modern and ancient environments, and influence of microbial community structure on biogeochemical cycles. Introduction to ecological principles and molecular approaches used in microbial ecology and geobiological investigations. Given in alternate years; offered 2024-25",
         "instructors": "Orphan"
+    },
+    {
+        "course_code": {
+            "prefixes": [
+                "Ge"
+            ],
+            "numbers": [
+                "190"
+            ],
+            "letters": []
+        },
+        "course_code_original": "Ge 190",
+        "name": "The Nature and Evolution of the Earth",
+        "units": "Units to be arranged",
+        "terms": null,
+        "prerequisites": null,
+        "description": "Units to be arranged; offered by announcement only. Advanced-level discussions of problems of current interest in the earth sciences. Students may enroll for any or all terms of this course without regard to sequence",
+        "instructors": "Staff"
     },
     {
         "course_code": {
@@ -12838,6 +13375,24 @@
         "prerequisites": null,
         "description": "6 units (2-0-4); second term. Discussion of key issues in active tectonics based on a review of the literature. The topic of the seminar is adjusted every year based on students' interest and recent literature. Given in alternate years; not offered 2024-25",
         "instructors": "Avouac"
+    },
+    {
+        "course_code": {
+            "prefixes": [
+                "HPS"
+            ],
+            "numbers": [
+                "90"
+            ],
+            "letters": []
+        },
+        "course_code_original": "HPS 90",
+        "name": "Public Lecture Series",
+        "units": null,
+        "terms": "first, second, third terms",
+        "prerequisites": null,
+        "description": "1 unit; first, second, third terms. Students attend four lectures, featuring speakers from outside Caltech, on topics in the history and philosophy of science. Students may choose from a variety of regularly scheduled HPS lectures, including HPS seminars, Harris lectures, and History seminars (history or philosophy of science only). Graded on attendance. Not available for credit toward the humanities-social science requirement. Graded pass/fail",
+        "instructors": "Visiting lecturers"
     },
     {
         "course_code": {
@@ -13904,6 +14459,24 @@
     {
         "course_code": {
             "prefixes": [
+                "MS"
+            ],
+            "numbers": [
+                "115"
+            ],
+            "letters": []
+        },
+        "course_code_original": "MS 115",
+        "name": "Fundamentals of Materials Science",
+        "units": "9 units (3-0-6)",
+        "terms": "first term",
+        "prerequisites": "Ph 2",
+        "description": "An introduction to the structure and properties of materials and the processing routes utilized to optimize properties. All major classes of materials are covered, including metals, ceramics, electronic materials, composites, and polymers. The relationships between chemical bonding, crystal structure, defects, thermodynamics, phase equilibria, microstructure, and properties are described",
+        "instructors": "Staff"
+    },
+    {
+        "course_code": {
+            "prefixes": [
                 "MS",
                 "ME",
                 "MedE"
@@ -14067,6 +14640,25 @@
         "prerequisites": null,
         "description": "Units to be arranged; first, second, third terms. Content will vary from year to year, but will be at a level suitable for advanced undergraduate or graduate students. Topics are chosen according to the interests of students and faculty. Visiting faculty may present portions of the course",
         "instructors": "Staff"
+    },
+    {
+        "course_code": {
+            "prefixes": [
+                "MS",
+                "ME"
+            ],
+            "numbers": [
+                "161"
+            ],
+            "letters": []
+        },
+        "course_code_original": "MS/ME 161",
+        "name": "Imperfections in Crystals",
+        "units": "9 units (3-0-6)",
+        "terms": "third term",
+        "prerequisites": "graduate standing or MS 115",
+        "description": "The relation of lattice defects to the physical and mechanical properties of crystalline solids. Introduction to point imperfections and their relationships to transport properties in metallic, covalent, and ionic crystals. Kroeger-Vink notation. Introduction to dislocations: geometric, crystallographic, elastic, and energetic properties of dislocations. Dislocation reactions and interactions including formation of locks, stacking faults, and surface effects. Relations between collective dislocation behavior and mechanical properties of crystals. Introduction to computer simulations of dislocations. Grain boundaries. The structure and properties of interfaces in solids. Emphasis on materials science aspects of role of defects in electrical, morphological, optical, and mechanical properties of solids. Not offered 2024-25",
+        "instructors": "Greer"
     },
     {
         "course_code": {
@@ -15524,6 +16116,24 @@
                 "ME"
             ],
             "numbers": [
+                "200"
+            ],
+            "letters": []
+        },
+        "course_code_original": "ME 200",
+        "name": "Advanced Work in Mechanical Engineering",
+        "units": null,
+        "terms": "A faculty mentor will oversee a student proposed, independent research or study project to meet the needs of graduate students",
+        "prerequisites": null,
+        "description": "A faculty mentor will oversee a student proposed, independent research or study project to meet the needs of graduate students. Graded pass/fail. The consent of a faculty mentor and a written report is required for each term of work",
+        "instructors": null
+    },
+    {
+        "course_code": {
+            "prefixes": [
+                "ME"
+            ],
+            "numbers": [
                 "201"
             ],
             "letters": []
@@ -15555,6 +16165,27 @@
         "prerequisites": "Ae/AM/CE/ME 102 or equivalent",
         "description": "Heterogenous materials. Notion of effective properties. Homogenization theory and applications to linear conductivity, elasticity and viscoelasticity. Effective properties in non-linear setting and instabilities. Wave propagation and meta-materials. Bandgaps",
         "instructors": "Bhattacharya"
+    },
+    {
+        "course_code": {
+            "prefixes": [
+                "ME",
+                "MS",
+                "Ae",
+                "AM"
+            ],
+            "numbers": [
+                "224"
+            ],
+            "letters": []
+        },
+        "course_code_original": "ME/MS/Ae/AM 224",
+        "name": "Multifunctional Materials",
+        "units": "9 units (3-0-6)",
+        "terms": "third term",
+        "prerequisites": "MS 115 or equivalent, Ae/AM/CE/ME 102 abc or APh 105 abc (may be waived with instructor's permission)",
+        "description": "Multiscale view of materials and different approaches of introducing functionality; Electronic aspects and multiferroic materials; Symmetry breaking phase transformations, microstructure: shape-memory alloys, ferroelectrics, liquid crystal elastomers; Composite materials and metamaterials: multifunctional structures. Not offered 2024-25",
+        "instructors": null
     },
     {
         "course_code": {
@@ -16268,6 +16899,46 @@
     {
         "course_code": {
             "prefixes": [
+                "NB",
+                "Bi",
+                "CNS"
+            ],
+            "numbers": [
+                "250"
+            ],
+            "letters": [
+                "c"
+            ]
+        },
+        "course_code_original": "NB/Bi/CNS 250 c",
+        "name": "Topics in Systems Neuroscience",
+        "units": "9 units (3-0-6)",
+        "terms": "third term",
+        "prerequisites": "graduate standing",
+        "description": "The class focuses on quantitative studies of problems in systems neuroscience. Students will study classical work such as Hodgkin and Huxley's landmark papers on the ionic basis of the action potential, and will move from the study of interacting currents within neurons to the study of systems of interacting neurons. Topics will include lateral inhibition, mechanisms of motion tuning, local learning rules and their consequences for network structure and dynamics, oscillatory dynamics and synchronization across brain circuits, and formation and computational properties of topographic neural maps. The course will combine lectures and discussions, in which students and faculty will examine papers on systems neuroscience, usually combining experimental and theoretical/modeling components",
+        "instructors": "Siapas"
+    },
+    {
+        "course_code": {
+            "prefixes": [
+                "NB"
+            ],
+            "numbers": [
+                "299"
+            ],
+            "letters": []
+        },
+        "course_code_original": "NB 299",
+        "name": "Graduate Research",
+        "units": "Units to be arranged",
+        "terms": null,
+        "prerequisites": null,
+        "description": "Units to be arranged; first, second, third terms. Students may register for research units after consultation with their adviser",
+        "instructors": null
+    },
+    {
+        "course_code": {
+            "prefixes": [
                 "PVA"
             ],
             "numbers": [
@@ -16504,6 +17175,24 @@
         "prerequisites": null,
         "description": "3 units (0-3-0); first, second, third terms. Instruction in the techniques of creating ceramics, including the slab roller and potter's wheel, and glazing methods",
         "instructors": "Plunkett"
+    },
+    {
+        "course_code": {
+            "prefixes": [
+                "Pl"
+            ],
+            "numbers": [
+                "89"
+            ],
+            "letters": []
+        },
+        "course_code_original": "Pl 89",
+        "name": "Applied Ethics (Ethics Bowl)",
+        "units": "3 units (3-0-0)",
+        "terms": "first",
+        "prerequisites": null,
+        "description": "3 units (3-0-0); first. This course will prepare a team to participate in the regional Intercollegiate Ethics Bowl in November/December. The Ethics Bowl provides students with the opportunity to discuss and work towards solving complex ethical issues in a team setting. The course will be structured around the ~15 case studies we receive, and consist of learning argumentative tools in moral philosophy, researching and analyzing the case studies, and debate practice in the lead-up to the tournament. During the tournament we will present & defend our analyses and engage with the analyses of other teams. Cases range from various practical contexts, including science & engineering, medicine, education, public policy, and personal life. If successful in the regional competition, our team will be invited to the National competition (Feb-March) which involves a new set of cases. The class will meet once a week (3 hours). Attendance to the tournament is required and travel expenses will be covered",
+        "instructors": "Gurcan"
     },
     {
         "course_code": {
@@ -17849,6 +18538,29 @@
             "prefixes": [
                 "Ph",
                 "APh",
+                "EE",
+                "BE"
+            ],
+            "numbers": [
+                "118"
+            ],
+            "letters": [
+                "ab"
+            ]
+        },
+        "course_code_original": "Ph/APh/EE/BE 118 ab",
+        "name": "Physics of Measurement",
+        "units": "9 units (3-0-6)",
+        "terms": "second term",
+        "prerequisites": "Ph 127, APh 105, or equivalent, or permission from instructor",
+        "description": "This course explores the fundamental underpinnings of experimental measurements from the perspectives of information, noise, coupling, responsivity, and backaction. Its overarching goal is to enable students to develop intuition about a diversity of real measurement systems and the means to critically evaluate them. This involves developing a standard framework for estimating the ultimate and practical limits to information that can be extracted from a real measurement system. Topics will include the fundamental nature of information and signals, physical signal transduction and responsivity, the physical origin of noise processes, modulation, frequency conversion, synchronous detection, signal-sampling techniques, digitization, signal transforms, spectral analyses, and correlation methods. The first term will cover the essential underpinnings, while second-term topics will vary year-by-year according to interest. Among possible Ph 118 b topics are: high frequency, microwave, and fast time-domain measurements; biological interfaces and biosensing; the physics of functional brain imaging; and quantum measurement. Part b not offered 2024-25",
+        "instructors": "Roukes"
+    },
+    {
+        "course_code": {
+            "prefixes": [
+                "Ph",
+                "APh",
                 "EE"
             ],
             "numbers": [
@@ -18029,6 +18741,24 @@
                 "Ph"
             ],
             "numbers": [
+                "171"
+            ],
+            "letters": []
+        },
+        "course_code_original": "Ph 171",
+        "name": "Reading and Independent Study",
+        "units": "Units in accordance with work accomplished",
+        "terms": null,
+        "prerequisites": null,
+        "description": "Units in accordance with work accomplished; Occasionally, advanced work involving reading, special problems, or independent study is carried out under the supervision of an instructor. Approval of the instructor and of the student's departmental adviser must be obtained before registering. Graded pass/fail",
+        "instructors": null
+    },
+    {
+        "course_code": {
+            "prefixes": [
+                "Ph"
+            ],
+            "numbers": [
                 "172"
             ],
             "letters": []
@@ -18058,6 +18788,24 @@
         "prerequisites": "Ph 6, Ph 106 a, Ph 125 a or equivalents",
         "description": "A one-term laboratory course which will require students to design, assemble, calibrate, and use an apparatus to conduct a nontrivial experiment involving quantum optics or other current research area of physics. Students will work as part of a small team to reproduce the results of a published research paper. Each team will be guided by an instructor who will meet weekly with the students; the students are each expected to spend an average of 4 hours/week in the laboratory and the remainder for study and design. Enrollment is limited. Permission of the instructors required",
         "instructors": "Rice"
+    },
+    {
+        "course_code": {
+            "prefixes": [
+                "Ph"
+            ],
+            "numbers": [
+                "198"
+            ],
+            "letters": []
+        },
+        "course_code_original": "Ph 198",
+        "name": "Special Topics in Physics",
+        "units": "Units in accordance with work accomplished",
+        "terms": null,
+        "prerequisites": null,
+        "description": "Units in accordance with work accomplished; Topics will vary year to year and may include hands-on laboratory work, team projects and a survey of modern physics research",
+        "instructors": "Staff"
     },
     {
         "course_code": {
@@ -18536,6 +19284,25 @@
     {
         "course_code": {
             "prefixes": [
+                "PS",
+                "Ec"
+            ],
+            "numbers": [
+                "128"
+            ],
+            "letters": []
+        },
+        "course_code_original": "PS/Ec 128",
+        "name": "Introduction to Public Health Economics and Policy",
+        "units": "9 units (3-0-6)",
+        "terms": "third term",
+        "prerequisites": null,
+        "description": "9 units (3-0-6); third term. This course will cover the basic concepts and principles of health economics and challenges in health policy implementation. By studying this course, students will establish economic thinking and be able to flexibly use economic methods to analyze practical problems in the field of health care. Students will also learn about the application of machine learning in public health. This course combines theory and methodology. The teaching goal focuses on students' ability to analyze and solve practical problems. Interactive teaching is done through group discussions and topic debates around case studies. Each chapter consists of a theory and case analysis. The case discussion will focus on basic theories and methods and highlight the hot issues in the current medical and health system. The exam will be an open-book exam, with class discussions accounting for 40%, and the final exam accounting for 60%",
+        "instructors": "Cao"
+    },
+    {
+        "course_code": {
+            "prefixes": [
                 "PS"
             ],
             "numbers": [
@@ -18683,6 +19450,27 @@
     {
         "course_code": {
             "prefixes": [
+                "Psy",
+                "CNS"
+            ],
+            "numbers": [
+                "105"
+            ],
+            "letters": [
+                "ab"
+            ]
+        },
+        "course_code_original": "Psy/CNS 105 ab",
+        "name": "Frontiers in Neuroeconomics",
+        "units": "5 units (1.5-0-3.5)",
+        "terms": "first and second terms",
+        "prerequisites": null,
+        "description": "5 units (1.5-0-3.5); first and second terms. The new discipline of Neuroeconomics seeks to understand the mechanisms underlying human choice behavior, born out of a confluence of approaches derived from Psychology, Neuroscience and Economics. This seminar will consider a variety of include the neural bases of reward and motivation, the neural representation of utility and risk, neural systems for inter-temporal choice, goals vs habits, and strategic interactions. We will also spend time evaluating various forms of computational and theoretical models that underpin the field such as reinforcement-learning, Bayesian models and race to barrier models. Each week we will focus on key papers and/or book chapters illustrating the relevant concepts",
+        "instructors": "O'Doherty"
+    },
+    {
+        "course_code": {
+            "prefixes": [
                 "Psy"
             ],
             "numbers": [
@@ -18788,6 +19576,26 @@
         "terms": "second term",
         "prerequisites": null,
         "description": "9 units (3-0-6); second term. This course will critically examine the impact of recent advances in computational neuroscience for central problems of philosophy of mind. Beginning with a historical overview of computationalism (the thesis that mental states are computational states), the course will examine how psychological explanation may be understood in computational terms across a variety of levels of description, from sub-neuronal and single neuroncomputation to circuit and network levels. Specific issues will include: whether computation provides unifying psychological principles across species; whether specific mental states such as pain are computational states; digital/analog computation, dynamical systems, and mental representation; whether conscious experience can be understood as a computational process. Not offered 2024-25",
+        "instructors": null
+    },
+    {
+        "course_code": {
+            "prefixes": [
+                "Psy",
+                "Bi",
+                "CNS"
+            ],
+            "numbers": [
+                "255"
+            ],
+            "letters": []
+        },
+        "course_code_original": "Psy/Bi/CNS 255",
+        "name": "Topics in Emotion and Social Cognition",
+        "units": "9 units (3-0-6)",
+        "terms": "third term",
+        "prerequisites": "NB/Bi/CNS 150 or instructor's permission",
+        "description": "Emotions are at the forefront of most human endeavors. Emotions aid us in decision-making (gut feelings), help us remember, torment us, yet have ultimately helped us to survive. Over the past few decades, we have begun to characterize the neural systems that extend from primitive affective response such as fight or flight to the complex emotions experienced by humans including guilt, envy, empathy and social pain. This course will begin with an in-depth examination of the neurobiological systems that underlie negative and positive emotions that highlight both rudimentary and complex emotions. The final weeks will be devoted to exploring how the neurobiological systems are disrupted in affective disorders including anxiety, aggression and psychopathy. In addition to these discussions and readings, each student will be required to write a review paper or produce a short movie on a topic related to one of the emotions discussed in these seminars and its underlying neural mechanisms. Not offered 2024-25",
         "instructors": null
     },
     {
@@ -19747,6 +20555,24 @@
         "prerequisites": null,
         "description": "9 units (3-0-6); first term. Organizations from Google to NASA are recruiting diversity task teams. College DEI initiatives have become a flashpoint in the culture wars. Social media feeds are flooded with clickbait headlines like \"13 Queer Superheroes We Need to See\" and \"Disney's Ariel is Black and People are MAD!\" Everywhere, debates about equity and transformation seem to turn on a single phrase: \"Representation matters!\" But how does representation matter, why does it matter, and when did it come to matter most? Pushing beyond competing narratives of 'wokeness' and 'inclusion', this course thinks through representation as a uniquely visual formula for social change with its own history, assumptions, and limitations. Working at nested scales from national controversies (like an all-female Ghostbusters) to local case studies (like East Hollywood's Flavors From Afar, with its roster of refugee chefs), students will study efforts to increase visibility and institutionalize diversity across cultural contexts, and explore how communities, in turn, challenge and transform identities prescribed for them",
         "instructors": "Stielau"
+    },
+    {
+        "course_code": {
+            "prefixes": [
+                "Wr"
+            ],
+            "numbers": [
+                "2"
+            ],
+            "letters": []
+        },
+        "course_code_original": "Wr 2",
+        "name": "Introduction to Academic Writing",
+        "units": "9 units (3-0-6)",
+        "terms": "first term",
+        "prerequisites": null,
+        "description": "9 units (3-0-6); first term. This course offers a focused introduction to the practices of reading, thinking, and writing that characterize academic writing. More specifically, the course teaches students how to articulate a position, situate writing within specific contexts, engage with the work of others, locate and provide convincing evidence, and understand the expectations of different types of academic readers. Students will take several writing projects through multiple stages of revision, improving their work with feedback from seminar discussions, workshops, and frequent one-to-one conferences with the instructor. Students are placed in Wr 2 based on a writing assessment that is required of all incoming students; successful completion of the course is required before taking first-year humanities courses. Enrolled students may be required to take Wr 3, 4, and/or 50 in subsequent quarters",
+        "instructors": "Hall, Schneiderman, Sherazi"
     },
     {
         "course_code": {

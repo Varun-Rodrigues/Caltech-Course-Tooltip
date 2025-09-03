@@ -26,22 +26,31 @@ PAGE_NUMBER_THRESHOLD = 500
 
 # Department headers to remove (only if they appear alone on a line)
 DEPARTMENT_HEADERS: Set[str] = {
-    "AEROSPACE", "ANTHROPOLOGY", "APPLIED AND COMPUTATIONAL MATH", 
+    "AEROSPACE", "ANTHROPOLOGY", "APPLIED AND COMPUTATIONAL MATH", "APPLIED & COMPUTATIONAL MATH",
     "APPLIED MECHANICS", "APPLIED PHYSICS", "ASTROPHYSICS", 
-    "BIOCHEMISTRY AND MOLECULAR BIOPHYSICS", "BIOENGINEERING", "BIOLOGY", 
-    "BUSINESS ECONOMICS AND MANAGEMENT", "CHEMICAL ENGINEERING", "CHEMISTRY", 
-    "CIVIL ENGINEERING", "COMPUTATION AND NEURAL SYSTEMS", "COMPUTER SCIENCE", 
-    "COMPUTING AND MATHEMATICAL SCIENCES", "CONTROL AND DYNAMICAL SYSTEMS", 
-    "ECONOMICS", "ELECTRICAL ENGINEERING", "ENERGY SCIENCE AND TECHNOLOGY", 
+    "BIOCHEMISTRY AND MOLECULAR BIOPHYSICS", "BIOCHEMISTRY & MOLECULAR BIOPHYSICS",
+    "BIOENGINEERING", "BIOLOGY", 
+    "BUSINESS ECONOMICS AND MANAGEMENT", "BUSINESS ECONOMICS & MANAGEMENT",
+    "CHEMICAL ENGINEERING", "CHEMISTRY", 
+    "CIVIL ENGINEERING", "COMPUTATION AND NEURAL SYSTEMS", "COMPUTATION & NEURAL SYSTEMS",
+    "COMPUTER SCIENCE", 
+    "COMPUTING AND MATHEMATICAL SCIENCES", "COMPUTING & MATHEMATICAL SCIENCES",
+    "CONTROL AND DYNAMICAL SYSTEMS", "CONTROL & DYNAMICAL SYSTEMS",
+    "ECONOMICS", "ELECTRICAL ENGINEERING", "ENERGY SCIENCE AND TECHNOLOGY", "ENERGY SCIENCE & TECHNOLOGY",
     "ENGINEERING", "ENGLISH", "ENGLISH AS A SECOND LANGUAGE", 
-    "ENVIRONMENTAL SCIENCE AND ENGINEERING", "FIRST-YEAR SEMINARS", 
-    "GEOLOGY", "HISTORY", "HISTORY AND PHILOSOPHY OF SCIENCE", "HUMANITIES", 
-    "INFORMATION AND DATA SCIENCES", "INFORMATION SCIENCE AND TECHNOLOGY", 
+    "ENVIRONMENTAL SCIENCE AND ENGINEERING", "ENVIRONMENTAL SCIENCE & ENGINEERING",
+    "FIRST-YEAR SEMINARS", 
+    "GEOLOGY", "HISTORY", "HISTORY AND PHILOSOPHY OF SCIENCE", "HISTORY & PHILOSOPHY OF SCIENCE",
+    "HUMANITIES", 
+    "INFORMATION AND DATA SCIENCES", "INFORMATION & DATA SCIENCES",
+    "INFORMATION SCIENCE AND TECHNOLOGY", "INFORMATION SCIENCE & TECHNOLOGY",
     "LANGUAGES", "LAW", "MATERIALS SCIENCE", "MATHEMATICS", 
     "MECHANICAL ENGINEERING", "MEDICAL ENGINEERING", "MUSIC", "NEUROBIOLOGY", 
-    "PERFORMING AND VISUAL ARTS", "PHILOSOPHY", "PHYSICAL EDUCATION", 
+    "PERFORMING AND VISUAL ARTS", "PERFORMING & VISUAL ARTS",
+    "PHILOSOPHY", "PHYSICAL EDUCATION", 
     "PHYSICS", "POLITICAL SCIENCE", "PSYCHOLOGY", 
-    "SCIENTIFIC AND ENGINEERING COMMUNICATION", "SOCIAL SCIENCE", 
+    "SCIENTIFIC AND ENGINEERING COMMUNICATION", "SCIENTIFIC & ENGINEERING COMMUNICATION",
+    "SOCIAL SCIENCE", 
     "STUDENT ACTIVITIES", "VISUAL CULTURE", "WRITING"
 }
 
@@ -49,10 +58,7 @@ DEPARTMENT_HEADERS: Set[str] = {
 PAGE_NUMBER_THRESHOLD = 500
 
 # Department names for course validation (reusing headers for consistency)
-DEPARTMENT_NAMES = list(DEPARTMENT_HEADERS) + [
-    # Add alternative spellings/formats that appear in "see [department]" references
-    "BUSINESS ECONOMICS & MANAGEMENT",  # Alternative to "BUSINESS ECONOMICS AND MANAGEMENT"
-]
+DEPARTMENT_NAMES = list(DEPARTMENT_HEADERS)
 
 # Regular expression patterns for course parsing
 COURSE_CODE_PATTERNS = [
@@ -129,10 +135,10 @@ def clean_catalog_text(lines: List[str]) -> List[str]:
             i += multiline_header_length
             continue
         
-        # Skip page numbers and remove the previous line (page footer)
+        # Skip page numbers and remove the previous line (page footer) only if it's not a department header
         if is_page_number(line):
-            if result:
-                result.pop()  # Remove previous line (page footer)
+            if result and not is_department_header(result[-1]):
+                result.pop()  # Remove previous line (page footer) only if it's not a department header
             removed_count["pages"] += 1
             i += 1
             continue
@@ -345,6 +351,10 @@ def is_valid_course_ending(line: str, previous_line: str = "") -> bool:
     if any(pattern in line_lower for pattern in ['instructor:', 'instructors:']):
         return True
     
+    # Check for course redirect patterns (For course description,)
+    if 'for course description,' in line_lower:
+        return True
+    
     # Check for complete "see [DEPARTMENT_NAME]" pattern by concatenating with previous line
     # This handles cases where "see" and the department name are split across lines
     if previous_line:
@@ -449,7 +459,8 @@ def convert_catalog_to_json(cleaned_lines: List[str]) -> List[Dict[str, Any]]:
         
         # Additional check: if this looks like a course start, verify the previous line ends with a valid pattern
         # This prevents course codes mentioned in descriptions from being treated as new courses
-        if is_course_start and previous_line and not is_valid_course_ending(previous_line, two_lines_back):
+        # Exception: department headers are valid starting points for new courses
+        if is_course_start and previous_line and not is_valid_course_ending(previous_line, two_lines_back) and not is_department_header(previous_line):
             is_course_start = False
 
         # A new block starts with a course code.
