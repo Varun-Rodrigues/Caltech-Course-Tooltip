@@ -1,0 +1,37 @@
+{
+  "manifest_version": 3,
+  "name": "Caltech Course Code Tooltip",
+  "version": "2.0.0",
+  "description": "Displays course information when hovering over Caltech course codes on web pages",
+  "author": "Varun Rodrigues",
+  "permissions": [
+    "activeTab",
+    "storage"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": ["config.js", "content.js"],
+      "css": ["styles.css"],
+      "run_at": "document_end"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["catalog.json"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "action": {
+    "default_title": "Caltech Course Code Tooltip",
+    "default_popup": "popup.html"
+  },
+  "icons": {
+    "48": "caltech-icon.png"
+  }
+}
