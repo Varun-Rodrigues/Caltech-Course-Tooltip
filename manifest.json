@@ -32,6 +32,6 @@
     "default_popup": "popup.html"
   },
   "icons": {
-    "48": "caltech-icon.png"
+    "48": "images/caltech-icon.png"
   }
 }

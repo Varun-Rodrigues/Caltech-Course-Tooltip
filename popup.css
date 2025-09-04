@@ -188,7 +188,7 @@ input:checked + .slider:before {
 }
 
 .accordion-header.active, .accordion-header:hover {
-    background-image: url(./white-sidebarmenu-cover-caltech.png), linear-gradient(90deg, #C75000 1%, #E58800 92%);
+    background-image: url(images/white-sidebarmenu-cover-caltech.png), linear-gradient(90deg, #C75000 1%, #E58800 92%);
     background-position: right, center;
     background-repeat: no-repeat;
     background-size: contain;
@@ -204,7 +204,7 @@ input:checked + .slider:before {
 .accordion-arrow {
   width: 7px;
   height: 12px;
-  background-image: url('icon-chevron-orange-caltech.png');
+  background-image: url('images/icon-chevron-orange-caltech.png');
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
@@ -214,11 +214,11 @@ input:checked + .slider:before {
 }
 
 .accordion-header:hover .accordion-arrow {
-  background-image: url('icon-chevron-white-caltech.png');
+  background-image: url('images/icon-chevron-white-caltech.png');
 }
 
 .accordion-header.active .accordion-arrow {
-  background-image: url('icon-chevron-white-caltech.png');
+  background-image: url('images/icon-chevron-white-caltech.png');
   transform: rotate(90deg);
 }
 

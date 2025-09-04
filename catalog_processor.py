@@ -136,9 +136,13 @@ def clean_catalog_text(lines: List[str]) -> List[str]:
             continue
         
         # Skip page numbers and remove the previous line (page footer) only if it's not a department header
+        # and doesn't contain important information like instructor names
         if is_page_number(line):
-            if result and not is_department_header(result[-1]):
-                result.pop()  # Remove previous line (page footer) only if it's not a department header
+            if (result and 
+                not is_department_header(result[-1]) and 
+                not 'instructor' in result[-1].lower() and
+                not 'not offered' in result[-1].lower()):
+                result.pop()  # Remove previous line (page footer) only if it's safe to do so
             removed_count["pages"] += 1
             i += 1
             continue
@@ -293,16 +297,37 @@ def parse_course_info(text_block: List[str]) -> Optional[Dict[str, Any]]:
     """Parse course information from a text block."""
     full_text = ' '.join(line.strip() for line in text_block)
 
-    # Skip courses that refer to other descriptions
-    if "for course description, see" in full_text.lower():
-        return None
+    # Check if this is a redirect course
+    is_redirect = "for course description, see" in full_text.lower()
 
     # Extract basic course information
     course_code, name, remaining_text = extract_course_header(text_block)
     if not course_code or not name:
         return None
 
-    # Extract additional information
+    # For redirect courses, extract basic info and mark as redirect
+    if is_redirect:
+        units, terms = extract_units_and_terms(remaining_text)
+        # Extract the department being referenced
+        redirect_match = re.search(r'for course description, see (.+)', full_text, re.IGNORECASE)
+        redirect_dept = redirect_match.group(1).strip() if redirect_match else "another department"
+        
+        # Parse the course code into structured format
+        parsed_course_code = parse_course_code(course_code)
+        
+        return {
+            "course_code": parsed_course_code,
+            "course_code_original": course_code,
+            "name": name,
+            "units": units,
+            "terms": terms,
+            "prerequisites": [],
+            "description": f"For course description, see {redirect_dept}",
+            "instructors": [],
+            "is_redirect": True
+        }
+
+    # Extract additional information for non-redirect courses
     units, terms = extract_units_and_terms(remaining_text)
     prerequisites = extract_prerequisites(full_text)
     instructors = extract_instructors(full_text)
@@ -327,7 +352,8 @@ def parse_course_info(text_block: List[str]) -> Optional[Dict[str, Any]]:
         "terms": terms,
         "prerequisites": prerequisites,
         "description": description,
-        "instructors": instructors
+        "instructors": instructors,
+        "is_redirect": False
     }
 
 
@@ -491,6 +517,46 @@ def convert_catalog_to_json(cleaned_lines: List[str]) -> List[Dict[str, Any]]:
     return all_courses
 
 
+def deduplicate_courses(courses: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """
+    Remove duplicate courses, preferring full descriptions over redirects.
+    
+    Args:
+        courses: List of course dictionaries
+        
+    Returns:
+        List of deduplicated courses
+    """
+    course_map = {}
+    
+    for course in courses:
+        course_code = course.get('course_code_original', '')
+        if not course_code:
+            continue
+            
+        is_redirect = course.get('is_redirect', False)
+        
+        if course_code not in course_map:
+            # First occurrence of this course
+            course_map[course_code] = course
+        else:
+            # Duplicate found - prefer non-redirect over redirect
+            existing_course = course_map[course_code]
+            existing_is_redirect = existing_course.get('is_redirect', False)
+            
+            if existing_is_redirect and not is_redirect:
+                # Replace redirect with full description
+                course_map[course_code] = course
+            elif not existing_is_redirect and is_redirect:
+                # Keep existing full description, ignore redirect
+                pass
+            else:
+                # Both are same type - keep the first one (could add more sophisticated logic here)
+                pass
+    
+    return list(course_map.values())
+
+
 def process_catalog_file(input_file: str, output_file: str) -> None:
     """Process the catalog file from uncleaned text directly to JSON."""
     try:
@@ -506,12 +572,17 @@ def process_catalog_file(input_file: str, output_file: str) -> None:
         
         # Convert to JSON format
         all_courses = convert_catalog_to_json(cleaned_lines)
+        print(f"Parsed {len(all_courses)} total course entries")
+        
+        # Deduplicate courses, preferring full descriptions over redirects
+        deduplicated_courses = deduplicate_courses(all_courses)
+        print(f"After deduplication: {len(deduplicated_courses)} unique courses")
         
         # Write the JSON file
         with open(output_file, 'w', encoding='utf-8') as f:
-            json.dump(all_courses, f, indent=4)
+            json.dump(deduplicated_courses, f, indent=4)
 
-        logger.info(f"Successfully parsed {len(all_courses)} courses and saved to '{output_file}'.")
+        logger.info(f"Successfully processed {len(deduplicated_courses)} unique courses and saved to '{output_file}'.")
         
     except FileNotFoundError:
         logger.error(f"Input file '{input_file}' not found")
