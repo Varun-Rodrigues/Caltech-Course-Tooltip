@@ -1,50 +1,116 @@
 /**
- * Popup script for Caltech Course Code Tooltip extension
- * Handles extension settings and course lookup functionality
+ * Popup Interface for Caltech Course Code Tooltip Extension
+ * ========================================================
+ * 
+ * This script manages the extension's popup interface, providing users with:
+ * - Real-time course lookup functionality
+ * - Extension settings configuration
+ * - Status monitoring and feedback
+ * - Accordion-style UI for organized information display
+ * 
+ * Key Features:
+ * - Interactive course search with instant results
+ * - Toggle switches for all tooltip display options
+ * - Settings persistence using Chrome storage API
+ * - Real-time communication with content scripts
+ * - User-friendly accordion interface
+ * - Comprehensive error handling and fallbacks
+ * 
+ * Architecture:
+ * - Event-driven design with DOM event listeners
+ * - Asynchronous communication with background script
+ * - Robust storage management with fallbacks
+ * - Modular function design for maintainability
  * 
  * @author Varun Rodrigues
  * @version 2.0
+ * @since 2025
  */
 
-// Get shared configuration from global object with robust fallback
+/**
+ * Default settings configuration with fallback support
+ * 
+ * Loads settings from global configuration object if available,
+ * otherwise falls back to hardcoded defaults to ensure extension
+ * functionality even if config.js fails to load.
+ */
 const DEFAULT_SETTINGS = (typeof window !== 'undefined' && window.CaltechExtensionConfig?.DEFAULT_SETTINGS) || {
-  extensionEnabled: true,
-  showName: true,
-  showUnits: true,
-  showTerms: true,
-  showPrerequisites: true,
-  showDescription: false,
-  showInstructors: true
+  extensionEnabled: true,      // Master toggle for extension functionality
+  showName: true,              // Display course name/title in tooltips
+  showUnits: true,             // Display unit count in tooltips
+  showTerms: true,             // Display terms offered in tooltips
+  showPrerequisites: true,     // Display prerequisite information
+  showDescription: false,      // Display course description (default off for space)
+  showInstructors: true        // Display instructor information
 };
 
+// Extract setting keys for dynamic toggle handling
 const TOGGLE_IDS = Object.keys(DEFAULT_SETTINGS);
 
-// Initialize popup when DOM is ready
+/**
+ * Main popup initialization
+ * 
+ * Executed when the DOM is fully loaded. Coordinates the entire popup setup process
+ * including settings loading, UI updates, event listener setup, and error handling.
+ */
 document.addEventListener('DOMContentLoaded', initializePopup);
 
+/**
+ * Initialize popup interface and functionality
+ * 
+ * This function orchestrates the popup startup sequence:
+ * 1. Load user settings from storage
+ * 2. Update UI to reflect current settings
+ * 3. Display extension status
+ * 4. Set up event listeners for user interactions
+ * 5. Initialize accordion interface
+ * 
+ * Includes comprehensive error handling to ensure popup remains functional
+ * even if individual components fail.
+ */
 async function initializePopup() {
   try {
     const settings = await loadSettings();
     updateUI(settings);
     updateStatus(settings.extensionEnabled);
     setupEventListeners(settings);
-    initializeAccordions(); // Add accordion functionality
+    initializeAccordions(); // Initialize accordion functionality
   } catch (error) {
-    console.error('Error initializing popup:', error);
-    updateStatus(false);
+    console.error('❌ Error initializing popup:', error);
+    updateStatus(false); // Show disabled status on error
   }
 }
 
+/**
+ * Load extension settings from Chrome storage with fallback
+ * 
+ * Attempts to load user settings from Chrome's sync storage. If storage
+ * is unavailable (e.g., in development or if permissions are missing),
+ * falls back to default settings to maintain functionality.
+ * 
+ * @returns {Promise<Object>} Promise resolving to settings object
+ */
 async function loadSettings() {
   try {
     return await chrome.storage.sync.get(DEFAULT_SETTINGS);
   } catch (error) {
-    console.warn('Storage not available, using defaults:', error);
+    console.warn('⚠️ Chrome storage not available, using defaults:', error);
     return { ...DEFAULT_SETTINGS };
   }
 }
 
+/**
+ * Set up event listeners for all interactive elements
+ * 
+ * Configures event handling for:
+ * - Toggle switches for settings
+ * - Course lookup input and interactions
+ * - Any dynamic UI elements
+ * 
+ * @param {Object} settings - Current extension settings
+ */
 function setupEventListeners(settings) {
+  // Set up toggle switch event listeners
   TOGGLE_IDS.forEach(toggleId => {
     const toggle = document.getElementById(toggleId);
     if (toggle) {
@@ -54,6 +120,7 @@ function setupEventListeners(settings) {
     }
   });
   
+  // Set up course lookup functionality
   setupCourseLookup(settings);
 }
 

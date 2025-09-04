@@ -1,88 +1,130 @@
 /**
  * Caltech Course Code Tooltip Extension - Popup Interface Styles
+ * ============================================================
  * 
- * Modern CSS styles for the extension's popup interface with support for:
- * - Professional Caltech branding
- * - Responsive design principles
- * - Dark mode compatibility
- * - Accessibility features
- * - Smooth animations and interactions
+ * This stylesheet defines the visual design and layout for the extension's popup interface.
+ * It creates a cohesive, professional appearance that aligns with Caltech's branding
+ * while maintaining excellent usability and accessibility.
+ * 
+ * Key Design Principles:
+ * - Clean, modern interface with Caltech brand colors
+ * - Responsive design that works well in small popup window
+ * - Accessible color contrasts and interactive elements
+ * - Organized sections using accordion pattern
+ * - Smooth animations and transitions for better UX
+ * 
+ * Structure:
+ * - Base styles for typography and layout
+ * - Header section with branding and status
+ * - Accordion sections for organized content
+ * - Toggle switches for settings
+ * - Course lookup input and results
+ * - Problem reporting section
  * 
  * @author Varun Rodrigues
  * @version 2.0
+ * @since 2025
  */
 
 /* ==========================================================================
-   Base Styles
+   Base Styles and Typography
    ========================================================================== */
 
+/**
+ * Main body container
+ * Sets the overall dimensions and typography for the popup interface
+ */
 body {
-  width: 360px;
-  font-size: 12px;
-  margin: 0;
-  margin-bottom: 10px;
-  font-family: 'Helvetica Neue', Arial, sans-serif;
-  background-color: #ffffff;
-  color: #333;
+  width: 360px;                                    /* Fixed width for consistent popup size */
+  font-size: 12px;                                /* Base font size for compact display */
+  margin: 0;                                       /* Remove default margins */
+  margin-bottom: 10px;                            /* Small bottom margin for spacing */
+  font-family: 'Helvetica Neue', Arial, sans-serif; /* Professional typography stack */
+  background-color: #ffffff;                       /* Clean white background */
+  color: #333;                                     /* Dark gray text for readability */
 }
 
 /* ==========================================================================
-   Header Section
+   Header Section - Extension Branding and Status
    ========================================================================== */
 
+/**
+ * Main header container with Caltech brand gradient
+ * Provides visual hierarchy and extension identification
+ */
 .header {
-  padding: 24px 14px;
-  text-align: left;
-  margin-bottom: 12px;
-  background-image: linear-gradient(-226deg, #003b4c 0%, #005851 100%);
-  box-shadow: 0 2px 12px rgba(0, 59, 76, 0.15);
+  padding: 24px 14px;                             /* Generous padding for visual prominence */
+  text-align: left;                               /* Left-aligned for professional appearance */
+  margin-bottom: 12px;                            /* Separation from content below */
+  background-image: linear-gradient(-226deg, #003b4c 0%, #005851 100%); /* Caltech brand colors */
+  box-shadow: 0 2px 12px rgba(0, 59, 76, 0.15);  /* Subtle shadow for depth */
 }
 
+/**
+ * Header subtitle with status information
+ * Displays context and current extension status
+ */
 .header-subtitle {
-  font-size: 5px;
-  font-weight: 400;
-  color: rgba(255, 255, 255, 0.85);
-  margin: 0 0 10px 0;
-  letter-spacing: 0.8px;
-  text-transform: uppercase;
-  line-height: 1.2;
+  font-size: 5px;                                 /* Very small for compact display */
+  font-weight: 400;                               /* Normal weight for subtitle */
+  color: rgba(255, 255, 255, 0.85);              /* Semi-transparent white */
+  margin: 0 0 10px 0;                             /* Bottom margin for spacing */
+  letter-spacing: 0.8px;                         /* Increased spacing for readability */
+  text-transform: uppercase;                      /* All caps for emphasis */
+  line-height: 1.2;                              /* Tight line height */
 }
 
+/**
+ * Main extension title
+ * Primary branding element with strong visual presence
+ */
 .header-title {
-  font-size: 22px;
-  font-weight: 500;
-  color: #ffffff;
-  margin: 0;
-  line-height: 1.1;
-  letter-spacing: -0.3px;
+  font-size: 22px;                               /* Large size for hierarchy */
+  font-weight: 500;                              /* Medium weight for readability */
+  color: #ffffff;                                /* Pure white for contrast */
+  margin: 0;                                     /* No margins for precise control */
+  line-height: 1.1;                             /* Tight line height for compactness */
+  letter-spacing: -0.3px;                       /* Slight negative spacing for polish */
 }
 
 /* ==========================================================================
-   Status Indicators
+   Status Indicators - Extension State Display
    ========================================================================== */
 
+/**
+ * Status text styling for enabled state
+ * Provides clear visual feedback about extension functionality
+ */
 .header-subtitle.enabled #status-text {
-  color: #fff;
+  color: #fff;                                   /* White text for enabled state */
 }
 
+/**
+ * Status text styling for disabled state
+ * Muted appearance indicates inactive extension
+ */
 .header-subtitle.disabled #status-text {
-  color: #999;
+  color: #999;                                   /* Gray text for disabled state */
 }
 
 /* ==========================================================================
-   Catalog Year Bar
+   Catalog Year Bar - Reference Information
    ========================================================================== */
 
+/**
+ * Catalog year indicator
+ * Displays current catalog year with Caltech orange accent
+ */
 .catalog-year-bar {
-  font-size: 14px;
-  line-height: 26px;
-  color: #D14900;
-  font-weight: bold;
-  text-transform: uppercase;
-  display: block;
-  border-bottom: 3px solid #D14900;
-  margin-bottom: 10px;
-  padding-left: 20px;
+  font-size: 14px;                              /* Medium size for visibility */
+  line-height: 26px;                            /* Adequate height for readability */
+  color: #D14900;                               /* Caltech orange brand color */
+  font-weight: bold;                            /* Bold for emphasis */
+  text-transform: uppercase;                    /* All caps for consistency */
+  display: block;                               /* Block display for full width */
+  border-bottom: 3px solid #D14900;            /* Orange bottom border accent */
+  margin-bottom: 10px;                         /* Spacing from content below */
+  padding-left: 20px;                          /* Left padding for alignment */
 }
 
 /* ==========================================================================
