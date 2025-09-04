@@ -1,16 +1,21 @@
 {
   "manifest_version": 3,
   "name": "Caltech Course Code Tooltip",
-  "version": "2.0.0",
-  "description": "Displays course information when hovering over Caltech course codes on web pages",
-  "author": "Varun Rodrigues",
+  "version": "1.0.0",
+  "description": "Instantly view Caltech course information with interactive tooltips. Hover over course codes like 'CS 156' or 'Ma/CS 6' to see details. Features click-to-pin tooltips, multi-section cycling, and comprehensive course catalog integration.",
+  "author": "Varun Rodrigues <vrodrigu@caltech.edu>",
+  "homepage_url": "https://github.com/Varun-Rodrigues/Caltech-Course-Tooltip",
+  
   "permissions": [
     "activeTab",
     "storage"
   ],
+  
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background.js",
+    "type": "module"
   },
+  
   "content_scripts": [
     {
       "matches": [
@@ -18,20 +23,39 @@
       ],
       "js": ["config.js", "content.js"],
       "css": ["styles.css"],
-      "run_at": "document_end"
+      "run_at": "document_end",
+      "all_frames": true
     }
   ],
+  
   "web_accessible_resources": [
     {
-      "resources": ["catalog.json"],
+      "resources": ["catalog.json", "images/*.png"],
       "matches": ["<all_urls>"]
     }
   ],
+  
   "action": {
-    "default_title": "Caltech Course Code Tooltip",
-    "default_popup": "popup.html"
+    "default_title": "Caltech Course Code Tooltip - Settings & Course Lookup",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "images/caltech-icon.png",
+      "32": "images/caltech-icon.png",
+      "48": "images/caltech-icon.png",
+      "128": "images/caltech-icon.png"
+    }
   },
+  
   "icons": {
-    "48": "caltech-icon.png"
+    "16": "images/caltech-icon.png",
+    "32": "images/caltech-icon.png",
+    "48": "images/caltech-icon.png",
+    "128": "images/caltech-icon.png"
+  },
+  
+  "minimum_chrome_version": "88",
+  
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
   }
 }

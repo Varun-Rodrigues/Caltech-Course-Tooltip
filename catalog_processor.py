@@ -4,7 +4,7 @@ Converts catalog_uncleaned.txt directly to structured JSON format for the browse
 Combines cleaning and parsing functionality into a single, production-ready script.
 
 @author: Varun Rodrigues
-@version: 2.0
+@version: 1.0
 @date: 2025
 """
 
@@ -26,22 +26,31 @@ PAGE_NUMBER_THRESHOLD = 500
 
 # Department headers to remove (only if they appear alone on a line)
 DEPARTMENT_HEADERS: Set[str] = {
-    "AEROSPACE", "ANTHROPOLOGY", "APPLIED AND COMPUTATIONAL MATH", 
+    "AEROSPACE", "ANTHROPOLOGY", "APPLIED AND COMPUTATIONAL MATH", "APPLIED & COMPUTATIONAL MATH",
     "APPLIED MECHANICS", "APPLIED PHYSICS", "ASTROPHYSICS", 
-    "BIOCHEMISTRY AND MOLECULAR BIOPHYSICS", "BIOENGINEERING", "BIOLOGY", 
-    "BUSINESS ECONOMICS AND MANAGEMENT", "CHEMICAL ENGINEERING", "CHEMISTRY", 
-    "CIVIL ENGINEERING", "COMPUTATION AND NEURAL SYSTEMS", "COMPUTER SCIENCE", 
-    "COMPUTING AND MATHEMATICAL SCIENCES", "CONTROL AND DYNAMICAL SYSTEMS", 
-    "ECONOMICS", "ELECTRICAL ENGINEERING", "ENERGY SCIENCE AND TECHNOLOGY", 
+    "BIOCHEMISTRY AND MOLECULAR BIOPHYSICS", "BIOCHEMISTRY & MOLECULAR BIOPHYSICS",
+    "BIOENGINEERING", "BIOLOGY", 
+    "BUSINESS ECONOMICS AND MANAGEMENT", "BUSINESS ECONOMICS & MANAGEMENT",
+    "CHEMICAL ENGINEERING", "CHEMISTRY", 
+    "CIVIL ENGINEERING", "COMPUTATION AND NEURAL SYSTEMS", "COMPUTATION & NEURAL SYSTEMS",
+    "COMPUTER SCIENCE", 
+    "COMPUTING AND MATHEMATICAL SCIENCES", "COMPUTING & MATHEMATICAL SCIENCES",
+    "CONTROL AND DYNAMICAL SYSTEMS", "CONTROL & DYNAMICAL SYSTEMS",
+    "ECONOMICS", "ELECTRICAL ENGINEERING", "ENERGY SCIENCE AND TECHNOLOGY", "ENERGY SCIENCE & TECHNOLOGY",
     "ENGINEERING", "ENGLISH", "ENGLISH AS A SECOND LANGUAGE", 
-    "ENVIRONMENTAL SCIENCE AND ENGINEERING", "FIRST-YEAR SEMINARS", 
-    "GEOLOGY", "HISTORY", "HISTORY AND PHILOSOPHY OF SCIENCE", "HUMANITIES", 
-    "INFORMATION AND DATA SCIENCES", "INFORMATION SCIENCE AND TECHNOLOGY", 
+    "ENVIRONMENTAL SCIENCE AND ENGINEERING", "ENVIRONMENTAL SCIENCE & ENGINEERING",
+    "FIRST-YEAR SEMINARS", 
+    "GEOLOGY", "HISTORY", "HISTORY AND PHILOSOPHY OF SCIENCE", "HISTORY & PHILOSOPHY OF SCIENCE",
+    "HUMANITIES", 
+    "INFORMATION AND DATA SCIENCES", "INFORMATION & DATA SCIENCES",
+    "INFORMATION SCIENCE AND TECHNOLOGY", "INFORMATION SCIENCE & TECHNOLOGY",
     "LANGUAGES", "LAW", "MATERIALS SCIENCE", "MATHEMATICS", 
     "MECHANICAL ENGINEERING", "MEDICAL ENGINEERING", "MUSIC", "NEUROBIOLOGY", 
-    "PERFORMING AND VISUAL ARTS", "PHILOSOPHY", "PHYSICAL EDUCATION", 
+    "PERFORMING AND VISUAL ARTS", "PERFORMING & VISUAL ARTS",
+    "PHILOSOPHY", "PHYSICAL EDUCATION", 
     "PHYSICS", "POLITICAL SCIENCE", "PSYCHOLOGY", 
-    "SCIENTIFIC AND ENGINEERING COMMUNICATION", "SOCIAL SCIENCE", 
+    "SCIENTIFIC AND ENGINEERING COMMUNICATION", "SCIENTIFIC & ENGINEERING COMMUNICATION",
+    "SOCIAL SCIENCE", 
     "STUDENT ACTIVITIES", "VISUAL CULTURE", "WRITING"
 }
 
@@ -49,10 +58,7 @@ DEPARTMENT_HEADERS: Set[str] = {
 PAGE_NUMBER_THRESHOLD = 500
 
 # Department names for course validation (reusing headers for consistency)
-DEPARTMENT_NAMES = list(DEPARTMENT_HEADERS) + [
-    # Add alternative spellings/formats that appear in "see [department]" references
-    "BUSINESS ECONOMICS & MANAGEMENT",  # Alternative to "BUSINESS ECONOMICS AND MANAGEMENT"
-]
+DEPARTMENT_NAMES = list(DEPARTMENT_HEADERS)
 
 # Regular expression patterns for course parsing
 COURSE_CODE_PATTERNS = [
@@ -129,10 +135,14 @@ def clean_catalog_text(lines: List[str]) -> List[str]:
             i += multiline_header_length
             continue
         
-        # Skip page numbers and remove the previous line (page footer)
+        # Skip page numbers and remove the previous line (page footer) only if it's not a department header
+        # and doesn't contain important information like instructor names
         if is_page_number(line):
-            if result:
-                result.pop()  # Remove previous line (page footer)
+            if (result and 
+                not is_department_header(result[-1]) and 
+                not 'instructor' in result[-1].lower() and
+                not 'not offered' in result[-1].lower()):
+                result.pop()  # Remove previous line (page footer) only if it's safe to do so
             removed_count["pages"] += 1
             i += 1
             continue
@@ -287,16 +297,37 @@ def parse_course_info(text_block: List[str]) -> Optional[Dict[str, Any]]:
     """Parse course information from a text block."""
     full_text = ' '.join(line.strip() for line in text_block)
 
-    # Skip courses that refer to other descriptions
-    if "for course description, see" in full_text.lower():
-        return None
+    # Check if this is a redirect course
+    is_redirect = "for course description, see" in full_text.lower()
 
     # Extract basic course information
     course_code, name, remaining_text = extract_course_header(text_block)
     if not course_code or not name:
         return None
 
-    # Extract additional information
+    # For redirect courses, extract basic info and mark as redirect
+    if is_redirect:
+        units, terms = extract_units_and_terms(remaining_text)
+        # Extract the department being referenced
+        redirect_match = re.search(r'for course description, see (.+)', full_text, re.IGNORECASE)
+        redirect_dept = redirect_match.group(1).strip() if redirect_match else "another department"
+        
+        # Parse the course code into structured format
+        parsed_course_code = parse_course_code(course_code)
+        
+        return {
+            "course_code": parsed_course_code,
+            "course_code_original": course_code,
+            "name": name,
+            "units": units,
+            "terms": terms,
+            "prerequisites": [],
+            "description": f"For course description, see {redirect_dept}",
+            "instructors": [],
+            "is_redirect": True
+        }
+
+    # Extract additional information for non-redirect courses
     units, terms = extract_units_and_terms(remaining_text)
     prerequisites = extract_prerequisites(full_text)
     instructors = extract_instructors(full_text)
@@ -321,7 +352,8 @@ def parse_course_info(text_block: List[str]) -> Optional[Dict[str, Any]]:
         "terms": terms,
         "prerequisites": prerequisites,
         "description": description,
-        "instructors": instructors
+        "instructors": instructors,
+        "is_redirect": False
     }
 
 
@@ -343,6 +375,10 @@ def is_valid_course_ending(line: str, previous_line: str = "") -> bool:
     
     # Check for instructor patterns
     if any(pattern in line_lower for pattern in ['instructor:', 'instructors:']):
+        return True
+    
+    # Check for course redirect patterns (For course description,)
+    if 'for course description,' in line_lower:
         return True
     
     # Check for complete "see [DEPARTMENT_NAME]" pattern by concatenating with previous line
@@ -449,7 +485,8 @@ def convert_catalog_to_json(cleaned_lines: List[str]) -> List[Dict[str, Any]]:
         
         # Additional check: if this looks like a course start, verify the previous line ends with a valid pattern
         # This prevents course codes mentioned in descriptions from being treated as new courses
-        if is_course_start and previous_line and not is_valid_course_ending(previous_line, two_lines_back):
+        # Exception: department headers are valid starting points for new courses
+        if is_course_start and previous_line and not is_valid_course_ending(previous_line, two_lines_back) and not is_department_header(previous_line):
             is_course_start = False
 
         # A new block starts with a course code.
@@ -480,6 +517,46 @@ def convert_catalog_to_json(cleaned_lines: List[str]) -> List[Dict[str, Any]]:
     return all_courses
 
 
+def deduplicate_courses(courses: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """
+    Remove duplicate courses, preferring full descriptions over redirects.
+    
+    Args:
+        courses: List of course dictionaries
+        
+    Returns:
+        List of deduplicated courses
+    """
+    course_map = {}
+    
+    for course in courses:
+        course_code = course.get('course_code_original', '')
+        if not course_code:
+            continue
+            
+        is_redirect = course.get('is_redirect', False)
+        
+        if course_code not in course_map:
+            # First occurrence of this course
+            course_map[course_code] = course
+        else:
+            # Duplicate found - prefer non-redirect over redirect
+            existing_course = course_map[course_code]
+            existing_is_redirect = existing_course.get('is_redirect', False)
+            
+            if existing_is_redirect and not is_redirect:
+                # Replace redirect with full description
+                course_map[course_code] = course
+            elif not existing_is_redirect and is_redirect:
+                # Keep existing full description, ignore redirect
+                pass
+            else:
+                # Both are same type - keep the first one (could add more sophisticated logic here)
+                pass
+    
+    return list(course_map.values())
+
+
 def process_catalog_file(input_file: str, output_file: str) -> None:
     """Process the catalog file from uncleaned text directly to JSON."""
     try:
@@ -495,12 +572,17 @@ def process_catalog_file(input_file: str, output_file: str) -> None:
         
         # Convert to JSON format
         all_courses = convert_catalog_to_json(cleaned_lines)
+        print(f"Parsed {len(all_courses)} total course entries")
+        
+        # Deduplicate courses, preferring full descriptions over redirects
+        deduplicated_courses = deduplicate_courses(all_courses)
+        print(f"After deduplication: {len(deduplicated_courses)} unique courses")
         
         # Write the JSON file
         with open(output_file, 'w', encoding='utf-8') as f:
-            json.dump(all_courses, f, indent=4)
+            json.dump(deduplicated_courses, f, indent=4)
 
-        logger.info(f"Successfully parsed {len(all_courses)} courses and saved to '{output_file}'.")
+        logger.info(f"Successfully processed {len(deduplicated_courses)} unique courses and saved to '{output_file}'.")
         
     except FileNotFoundError:
         logger.error(f"Input file '{input_file}' not found")

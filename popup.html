@@ -1,91 +1,174 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <!-- Document metadata and character encoding -->
   <meta charset="utf-8">
-  <meta name="description" content="Caltech Course Code Tooltip Extension">
+  <meta name="description" content="Caltech Course Code Tooltip Extension - Settings and Course Lookup Interface">
   <meta name="author" content="Varun Rodrigues">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- External font resource for Caltech branding -->
   <link href="https://fonts.cdnfonts.com/css/helvetica-neue-5" rel="stylesheet">
+  
+  <!-- Main stylesheet for popup interface -->
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
 
+  <!-- Main header section with extension title and status -->
   <div class="header">
+    <!-- Dynamic subtitle showing current functionality and loading status -->
     <div id="header-subtitle" class="header-subtitle">
       Course Lookup and Extension Configurations / <span id="status-text">Loading...</span>
     </div>
+    
+    <!-- Primary extension title with Caltech branding -->
     <h1 class="header-title">Caltech Catalog Tooltips</h1>
   </div>
 
+  <!-- Catalog year indicator bar -->
   <div class="catalog-year-bar">
     2025-2026 Catalog
   </div>
 
+  <!-- Course Lookup Accordion Section -->
+  <!-- Interactive course search functionality for direct course information lookup -->
   <div class="accordion-section">
     <div class="accordion-header" data-target="course-lookup-content">
       <h3>Course Lookup</h3>
       <span class="accordion-arrow"></span>
     </div>
     <div id="course-lookup-content" class="accordion-content">
+      <!-- Course search input with placeholder text -->
       <div class="input-container">
-        <input type="text" id="course-lookup-input" placeholder="e.g., CS 157, IDS 157">
+        <input type="text" id="course-lookup-input" placeholder="e.g., CS 157, IDS 157" aria-label="Course code search">
       </div>
-      <div id="course-lookup-result" >
+      
+      <!-- Results display area for course information -->
+      <div id="course-lookup-result">
         <span style="font-size: 12px;">Enter a course code above to see course information.</span>
       </div>
     </div>
   </div>
 
+  <!-- User Guide Accordion Section -->
+  <!-- Comprehensive instructions for using the tooltip extension -->
+  <div class="accordion-section user-guide-accordion">
+    <div class="accordion-header " data-target="user-guide-content">
+      <h3>User Guide</h3>
+      <span class="accordion-arrow"></span>
+    </div>
+    <div id="user-guide-content" class="accordion-content">
+      <div class="user-guide-section">
+        <!-- Basic tooltip usage instructions -->
+        <div class="guide-item">
+          <h4>Basic Usage</h4>
+          <p>Hover over highlighted course codes on any webpage to see a tooltip with course information. Click on a course code to pin the tooltip for detailed reading.</p>
+        </div>
+        
+        <!-- Pinned tooltip functionality -->
+        <div class="guide-item">
+          <h4>Pinned Tooltips</h4>
+          <p>When a tooltip is pinned, you can scroll through courses with long descriptions. Click outside the tooltip or press ESC to unpin.</p>
+        </div>
+        
+        <!-- Multi-course cycling feature -->
+        <div class="guide-item">
+          <h4>Course Ranges & Cycling</h4>
+          <p>For course ranges like "SEC 11-13" or multi-section courses, click repeatedly on the highlighted text to cycle through each individual course.</p>
+        </div>
+        
+        <!-- Course lookup functionality -->
+        <div class="guide-item">
+          <h4>Course Search</h4>
+          <p>Use the course lookup above to search for specific courses directly. This is especially useful when viewing PDFs or documents where automatic detection may not work.</p>
+        </div>
+        
+        <!-- Settings customization -->
+        <div class="guide-item">
+          <h4>Customization</h4>
+          <p>Configure the settings below to customize what information appears in the tooltips, such as prerequisites, descriptions, and instructor details.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Accordion Section -->
+  <!-- Configuration options for tooltip display and extension behavior -->
   <div class="accordion-section">
     <div class="accordion-header" data-target="settings-content">
       <h3>Settings</h3>
       <span class="accordion-arrow"></span>
     </div>
     <div id="settings-content" class="accordion-content">
+      
+      <!-- Master extension toggle -->
       <div class="toggle-item">
         <span class="toggle-label">Enable tooltips</span>
-        <label class="toggle-switch">
-          <input type="checkbox" id="extensionEnabled">
+        <label class="toggle-switch" aria-label="Toggle extension on/off">
+          <input type="checkbox" id="extensionEnabled" aria-describedby="extension-enabled-desc">
           <span class="slider"></span>
         </label>
       </div>
+      
+      <!-- Course name display toggle -->
+      <div class="toggle-item">
+        <span class="toggle-label">Course names</span>
+        <label class="toggle-switch" aria-label="Show/hide course names in tooltips">
+          <input type="checkbox" id="showName" aria-describedby="show-name-desc">
+          <span class="slider"></span>
+        </label>
+      </div>
+      
+      <!-- Units information toggle -->
       <div class="toggle-item">
         <span class="toggle-label">Units</span>
-        <label class="toggle-switch">
-          <input type="checkbox" id="showUnits">
+        <label class="toggle-switch" aria-label="Show/hide unit information in tooltips">
+          <input type="checkbox" id="showUnits" aria-describedby="show-units-desc">
           <span class="slider"></span>
         </label>
       </div>
+      
+      <!-- Terms offered toggle -->
       <div class="toggle-item">
         <span class="toggle-label">Terms</span>
-        <label class="toggle-switch">
-          <input type="checkbox" id="showTerms">
+        <label class="toggle-switch" aria-label="Show/hide terms offered in tooltips">
+          <input type="checkbox" id="showTerms" aria-describedby="show-terms-desc">
           <span class="slider"></span>
         </label>
       </div>
+      
+      <!-- Prerequisites display toggle -->
       <div class="toggle-item">
         <span class="toggle-label">Prerequisites</span>
-        <label class="toggle-switch">
-          <input type="checkbox" id="showPrerequisites">
+        <label class="toggle-switch" aria-label="Show/hide prerequisites in tooltips">
+          <input type="checkbox" id="showPrerequisites" aria-describedby="show-prerequisites-desc">
           <span class="slider"></span>
         </label>
       </div>
+      
+      <!-- Course description toggle -->
       <div class="toggle-item">
         <span class="toggle-label">Description</span>
-        <label class="toggle-switch">
-          <input type="checkbox" id="showDescription">
+        <label class="toggle-switch" aria-label="Show/hide course descriptions in tooltips">
+          <input type="checkbox" id="showDescription" aria-describedby="show-description-desc">
           <span class="slider"></span>
         </label>
       </div>
+      
+      <!-- Instructor information toggle -->
       <div class="toggle-item">
         <span class="toggle-label">Instructors</span>
-        <label class="toggle-switch">
-          <input type="checkbox" id="showInstructors">
+        <label class="toggle-switch" aria-label="Show/hide instructor information in tooltips">
+          <input type="checkbox" id="showInstructors" aria-describedby="show-instructors-desc">
           <span class="slider"></span>
         </label>
       </div>
     </div>
   </div>
 
+  <!-- Report Problem Accordion Section -->
+  <!-- Contact information and bug reporting instructions -->
   <div class="accordion-section">
     <div class="accordion-header" data-target="report-problem-content">
       <h3>Report a Problem</h3>
@@ -93,16 +176,26 @@
     </div>
     <div id="report-problem-content" class="accordion-content">
       <div class="problem-report-section">
+        <!-- Problem reporting introduction -->
         <p class="problem-intro">
           If you encounter any issues such as <i>missing courses, courses not being detected, or incorrect information</i> or have suggestions for this extension, please contact us <a href="mailto:vrodrigu@caltech.edu" class="email-link">here</a> so we can keep it up to date.
         </p>
-        <p class="instructions-text">
+        
+        <!-- Detailed reporting instructions -->
+        <p class="problem-intro">
           <strong>Please include in your email:</strong> the exact problem description, the course code in exact text format, and the URL where the issue occurred (if applicable)
+        </p>
+
+        <!-- Contribution Instructions -->
+        <p class="instructions-text">
+          To inspect this extension's code or contribute, please visit our GitHub repository <a href="https://github.com/Varun-Rodrigues/Caltech-Course-Tooltip" class="github-link">here</a>. Check <i>README.md</i> for setup and contribution guidelines.
         </p>
       </div>
     </div>
   </div>
 
+  <!-- JavaScript Dependencies -->
+  <!-- Configuration data and main popup functionality -->
   <script src="config.js"></script>
   <script src="popup.js"></script>
 </body>
