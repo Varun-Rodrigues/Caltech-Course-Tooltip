@@ -20,7 +20,7 @@ class CaltechCourseTooltip {
         showDescription: false,
         showInstructors: true
       },
-      COURSE_CODE_PATTERN: /\b([A-Za-z][a-zA-Z]{1,4}(?:\/[A-Za-z][a-zA-Z]{1,4})*)\s*(\d{1,3}(?:\/\d{1,3})*)\s*([abcdegimx]{1,3})?(?=\s|$|[.,;!?()\[\]{}])/gi,
+      COURSE_CODE_PATTERN: /\b([A-Za-z][a-zA-Z]{1,4}(?:\/[A-Za-z][a-zA-Z]{1,4})*)\s*(\d{1,3}(?:\/\d{1,3})*)\s*([a-z]{0,3})(?=\s|$|[.,;!?()\[\]{}])/gi,
       TOOLTIP_CONFIG: {
         HOVER_DELAY: 300,
         HIDE_DELAY: 100,
@@ -423,7 +423,7 @@ class CaltechCourseTooltip {
   }
 
   // Detect course codes in text using the shared pattern
-  detectCourseInText(text) {
+  async detectCourseInText(text) {
     console.log('🔍 Detecting courses in text:', text);
     const matches = [];
     
@@ -463,7 +463,7 @@ class CaltechCourseTooltip {
       // Check if this is a compound course code (e.g., "APh/EE 23/24")
       if (numbers.includes('/')) {
         console.log('🔄 Expanding compound course code:', fullMatch);
-        const expandedMatches = this.expandCompoundCourseCode(match, prefixes, numbers, letters);
+        const expandedMatches = await this.expandCompoundCourseCode(match, prefixes, numbers, letters);
         console.log('📈 Expanded to:', expandedMatches);
         matches.push(...expandedMatches);
       } else {
@@ -489,7 +489,7 @@ class CaltechCourseTooltip {
     
     // Pattern to match: Department(s) + first number + comma/and-separated additional numbers
     // e.g., "Ge/Ay 132, 133, 137" or "CS 15, 16, 17" or "APh/EE 23, 24" or "APh/EE 130, 131, and 132"
-    const shorthandPattern = /\b([A-Za-z][a-zA-Z]{1,4}(?:\/[A-Za-z][a-zA-Z]{1,4})*)\s*(\d{1,3})([abcdegimx]{1,3})?\s*(?:,\s*(?:and\s+)?|,?\s+and\s+)(?:\d{1,3}[abcdegimx]{1,3}?\s*(?:,\s*(?:and\s+)?|,?\s+and\s+|$))+/gi;
+    const shorthandPattern = /\b([A-Za-z][a-zA-Z]{1,4}(?:\/[A-Za-z][a-zA-Z]{1,4})*)\s*(\d{1,3})([a-z]{0,3})\s*(?:,\s*(?:and\s+)?|,?\s+and\s+)(?:\d{1,3}[a-z]{0,3}\s*(?:,\s*(?:and\s+)?|,?\s+and\s+|$))+/gi;
     
     let match;
     while ((match = shorthandPattern.exec(text)) !== null) {
@@ -507,7 +507,7 @@ class CaltechCourseTooltip {
       });
       
       // Extract all numbers from the pattern, but we need to carefully find their positions
-      const numberPattern = /\d{1,3}([abcdegimx]{1,3})?/g;
+      const numberPattern = /\d{1,3}([a-z]{0,3})/g;
       const allNumbers = [];
       let numberMatch;
       
@@ -683,7 +683,7 @@ class CaltechCourseTooltip {
 
   // Expand compound course codes like "APh/EE 23/24" into separate courses
   // But NOT for single courses with multiple numbers like "CS/MA 6/106"
-  expandCompoundCourseCode(originalMatch, prefixes, numbers, letters) {
+  async expandCompoundCourseCode(originalMatch, prefixes, numbers, letters) {
     console.log('🚀 expandCompoundCourseCode called with:', {prefixes, numbers, letters});
     const expandedMatches = [];
     const [fullMatch] = originalMatch;
@@ -706,106 +706,128 @@ class CaltechCourseTooltip {
       }];
     }
     
-    // Check if this is a single course with multiple departments AND numbers
-    // like "CS/MA 6/106" - this should NOT be expanded
-    const prefixParts = prefixes.split('/');
-    console.log('🏷️ Prefix parts:', prefixParts);
+    // Check the catalog to determine if this should be treated as:
+    // 1. A single cross-listed course (e.g., "ACM 95/100 ab")
+    // 2. Multiple separate courses (e.g., "APh/EE 23/24")
     
-    // Special case: If we have multiple prefixes AND multiple numbers,
-    // we need to check if the numbers are sequential/similar (indicating multiple courses)
-    // vs. different course numbers (indicating a single cross-listed course)
-    if (prefixParts.length > 1 && numberParts.length > 1) {
-      // Check if numbers are sequential or very close (indicating multiple courses)
-      // e.g., "23/24" should be expanded, but "6/106" should not
-      const firstNum = parseInt(numberParts[0]);
-      const secondNum = parseInt(numberParts[1]);
-      
-      // If numbers are sequential (diff = 1) or very close (diff <= 5), treat as multiple courses
-      // Otherwise, treat as single cross-listed course
-      const numDiff = Math.abs(secondNum - firstNum);
-      
-      if (numDiff <= 5) {
-        console.log(`🔄 Numbers ${firstNum} and ${secondNum} are close (diff: ${numDiff}), treating as multiple courses`);
-        // Continue with expansion logic below
-      } else {
-        console.log(`🎯 Numbers ${firstNum} and ${secondNum} are far apart (diff: ${numDiff}), treating as single cross-listed course`);
-        // Treat as single course (e.g., "CS/MA 6/106")
-        return [{
-          fullMatch: fullMatch.trim(),
-          index: baseIndex,
-          length: fullMatch.length,
-          prefixes,
-          numbers,
-          letters
-        }];
-      }
+    console.log('🔍 Checking catalog for compound course pattern...');
+    
+    // First, check if the full compound course exists as a single course
+    const fullCourseCode = `${prefixes} ${numbers}${letters}`.trim();
+    console.log('🎯 Checking for full compound course:', fullCourseCode);
+    const fullCourseMatch = await this.findCourseMatch(fullCourseCode);
+    
+    if (fullCourseMatch) {
+      console.log('✅ Found full compound course in catalog - treating as single course');
+      // Exists as single course, don't expand
+      return [{
+        fullMatch: fullMatch.trim(),
+        index: baseIndex,
+        length: fullMatch.length,
+        prefixes,
+        numbers,
+        letters
+      }];
     }
     
-    console.log('✨ Expanding into multiple courses...');
-    // If we have single prefix with multiple numbers (e.g., "APh 23/24" or "APh/EE 23/24"),
-    // this represents multiple courses with the same prefix(es)
+    // Check if individual courses exist
+    console.log('🔍 Checking for individual courses...');
+    const individualCourses = [];
+    let allIndividualExist = true;
     
-    // First part: "APh/EE 23" - includes the full prefix and first number
-    const firstCourse = `${prefixes} ${numberParts[0]}${letters}`;
-    
-    // Find the end of the first number (before the slash that separates numbers)
-    // We need to find the slash that comes after the first number, not the slashes in the prefix
-    const firstNumberPattern = new RegExp(`\\b${prefixes.replace(/\//g, '\\/')}\\s*${numberParts[0]}${letters}`);
-    const firstNumberMatch = fullMatch.match(firstNumberPattern);
-    let firstPartEnd;
-    
-    if (firstNumberMatch) {
-      firstPartEnd = firstNumberMatch[0].length;
-    } else {
-      // Fallback: find position after first number + letters
-      const afterFirstNumber = fullMatch.indexOf(`${numberParts[0]}${letters}`) + `${numberParts[0]}${letters}`.length;
-      firstPartEnd = afterFirstNumber;
-    }
-    
-    console.log('🎯 First part details:', {
-      firstCourse,
-      firstPartEnd,
-      fullMatch,
-      extractedText: fullMatch.substring(0, firstPartEnd)
-    });
-    
-    expandedMatches.push({
-      fullMatch: firstCourse.trim(),
-      index: baseIndex,
-      length: firstPartEnd,
-      prefixes,
-      numbers: numberParts[0],
-      letters,
-      isExpanded: true,
-      originalMatch: fullMatch
-    });
-    
-    // Additional parts: "/24" but representing "APh/EE 24"
-    for (let i = 1; i < numberParts.length; i++) {
-      const currentNumber = numberParts[i];
-      const courseCode = `${prefixes} ${currentNumber}${letters}`;
+    for (const numberPart of numberParts) {
+      const individualCourseCode = `${prefixes} ${numberPart}${letters}`.trim();
+      console.log('🎯 Checking for individual course:', individualCourseCode);
+      const individualMatch = await this.findCourseMatch(individualCourseCode);
       
-      // Find the start of this number part in the original string
-      let searchPattern = `/${currentNumber}`;
-      let startPos = fullMatch.indexOf(searchPattern, fullMatch.indexOf(`/${numberParts[i-1]}`));
-      
-      if (startPos !== -1) {
-        expandedMatches.push({
-          fullMatch: courseCode.trim(),
-          index: baseIndex + startPos,
-          length: searchPattern.length + letters.length,
-          prefixes,
-          numbers: currentNumber,
-          letters,
-          isExpanded: true,
-          originalMatch: fullMatch,
-          displayText: `/${currentNumber}${letters}` // What actually shows in the text
+      if (individualMatch) {
+        console.log('✅ Found individual course:', individualCourseCode);
+        individualCourses.push({
+          courseCode: individualCourseCode,
+          numberPart: numberPart,
+          course: individualMatch
         });
+      } else {
+        console.log('❌ Individual course not found:', individualCourseCode);
+        allIndividualExist = false;
       }
     }
     
-    console.log('🎉 Final expanded matches:', expandedMatches);
-    return expandedMatches;
+    if (allIndividualExist && individualCourses.length > 1) {
+      console.log('🔄 All individual courses exist - expanding to separate courses');
+      
+      // First part: "APh/EE 23" - includes the full prefix and first number
+      const firstCourse = `${prefixes} ${numberParts[0]}${letters}`;
+      
+      // Find the end of the first number (before the slash that separates numbers)
+      const firstNumberPattern = new RegExp(`\\b${prefixes.replace(/\//g, '\\/')}\\s*${numberParts[0]}${letters}`);
+      const firstNumberMatch = fullMatch.match(firstNumberPattern);
+      let firstPartEnd;
+      
+      if (firstNumberMatch) {
+        firstPartEnd = firstNumberMatch[0].length;
+      } else {
+        // Fallback: find position after first number + letters
+        const afterFirstNumber = fullMatch.indexOf(`${numberParts[0]}${letters}`) + `${numberParts[0]}${letters}`.length;
+        firstPartEnd = afterFirstNumber;
+      }
+      
+      console.log('🎯 First part details:', {
+        firstCourse,
+        firstPartEnd,
+        fullMatch,
+        extractedText: fullMatch.substring(0, firstPartEnd)
+      });
+      
+      expandedMatches.push({
+        fullMatch: firstCourse.trim(),
+        index: baseIndex,
+        length: firstPartEnd,
+        prefixes,
+        numbers: numberParts[0],
+        letters,
+        isExpanded: true,
+        originalMatch: fullMatch
+      });
+      
+      // Additional parts: "/24" but representing "APh/EE 24"
+      for (let i = 1; i < numberParts.length; i++) {
+        const currentNumber = numberParts[i];
+        const courseCode = `${prefixes} ${currentNumber}${letters}`;
+        
+        // Find the start of this number part in the original string
+        let searchPattern = `/${currentNumber}`;
+        let startPos = fullMatch.indexOf(searchPattern, fullMatch.indexOf(`/${numberParts[i-1]}`));
+        
+        if (startPos !== -1) {
+          expandedMatches.push({
+            fullMatch: courseCode.trim(),
+            index: baseIndex + startPos,
+            length: searchPattern.length + letters.length,
+            prefixes,
+            numbers: currentNumber,
+            letters,
+            isExpanded: true,
+            originalMatch: fullMatch,
+            displayText: `/${currentNumber}${letters}` // What actually shows in the text
+          });
+        }
+      }
+      
+      console.log('🎉 Final expanded matches:', expandedMatches);
+      return expandedMatches;
+    } else {
+      console.log('⚠️ Not all individual courses exist - treating as single course');
+      // Not all individual courses exist, treat as single course
+      return [{
+        fullMatch: fullMatch.trim(),
+        index: baseIndex,
+        length: fullMatch.length,
+        prefixes,
+        numbers,
+        letters
+      }];
+    }
   }
 
   async processTextNode(textNode) {
@@ -821,7 +843,7 @@ class CaltechCourseTooltip {
     const text = textNode.textContent;
     
     // Use the simple course detection function
-    const allMatches = this.detectCourseInText(text);
+    const allMatches = await this.detectCourseInText(text);
     
     if (allMatches.length === 0) return;
 
