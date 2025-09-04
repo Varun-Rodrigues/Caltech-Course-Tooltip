@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Caltech Course Code Tooltip",
   "version": "1.0.0",
-  "description": "Instantly view Caltech course information with interactive tooltips. Hover over course codes like 'CS 156' or 'Ma/CS 6' to see details. Features click-to-pin tooltips, multi-section cycling, and comprehensive course catalog integration.",
+  "description": "Automatically detects Caltech course codes on web pages and displays helpful tooltips with detailed course information.",
   "author": "Varun Rodrigues <vrodrigu@caltech.edu>",
   "homepage_url": "https://github.com/Varun-Rodrigues/Caltech-Course-Tooltip",
   
