@@ -1,368 +1,696 @@
 /**
- * Popup Interface for Caltech Course Code Tooltip Extension
- * ========================================================
+ * Caltech Course Code Tooltip Extension - Popup Interface
  * 
- * This script manages the extension's popup interface, providing users with:
- * - Real-time course lookup functionality
- * - Extension settings configuration
- * - Status monitoring and feedback
- * - Accordion-style UI for organized information display
+ * This popup script provides the user interface for managing extension settings
+ * and performing manual course lookups. It handles communication with the 
+ * background script and content scripts for real-time configuration updates.
  * 
- * Key Features:
- * - Interactive course search with instant results
- * - Toggle switches for all tooltip display options
- * - Settings persistence using Chrome storage API
- * - Real-time communication with content scripts
- * - User-friendly accordion interface
- * - Comprehensive error handling and fallbacks
+ * Features:
+ * - Extension enable/disable toggle
+ * - Individual tooltip content controls
+ * - Real-time course code lookup
+ * - Settings synchronization
+ * - Collapsible accordion interface
+ * - Error handling and validation
  * 
- * Architecture:
- * - Event-driven design with DOM event listeners
- * - Asynchronous communication with background script
- * - Robust storage management with fallbacks
- * - Modular function design for maintainability
- * 
- * @author Varun Rodrigues
- * @version 2.0
- * @since 2025
+ * @fileoverview Popup interface for the Caltech Course Code Tooltip Extension
+ * @author Varun Rodrigues <vrodrigu@caltech.edu>
+ * @version 2.1.0
+ * @since 1.0.0
+ * @copyright 2024 Varun Rodrigues
+ * @license MIT
  */
+
+'use strict';
 
 /**
- * Default settings configuration with fallback support
- * 
- * Loads settings from global configuration object if available,
- * otherwise falls back to hardcoded defaults to ensure extension
- * functionality even if config.js fails to load.
+ * Default settings configuration with robust fallback
+ * @type {Object}
+ * @const
  */
 const DEFAULT_SETTINGS = (typeof window !== 'undefined' && window.CaltechExtensionConfig?.DEFAULT_SETTINGS) || {
-  extensionEnabled: true,      // Master toggle for extension functionality
-  showName: true,              // Display course name/title in tooltips
-  showUnits: true,             // Display unit count in tooltips
-  showTerms: true,             // Display terms offered in tooltips
-  showPrerequisites: true,     // Display prerequisite information
-  showDescription: false,      // Display course description (default off for space)
-  showInstructors: true        // Display instructor information
+  extensionEnabled: true,
+  showName: true,
+  showUnits: true,
+  showTerms: true,
+  showPrerequisites: true,
+  showDescription: false,
+  showInstructors: true
 };
 
-// Extract setting keys for dynamic toggle handling
+/**
+ * Array of setting toggle IDs for efficient processing
+ * @type {string[]}
+ * @const
+ */
 const TOGGLE_IDS = Object.keys(DEFAULT_SETTINGS);
 
 /**
- * Main popup initialization
- * 
- * Executed when the DOM is fully loaded. Coordinates the entire popup setup process
- * including settings loading, UI updates, event listener setup, and error handling.
+ * Popup application class for managing the extension interface
+ * @class PopupManager
  */
-document.addEventListener('DOMContentLoaded', initializePopup);
-
-/**
- * Initialize popup interface and functionality
- * 
- * This function orchestrates the popup startup sequence:
- * 1. Load user settings from storage
- * 2. Update UI to reflect current settings
- * 3. Display extension status
- * 4. Set up event listeners for user interactions
- * 5. Initialize accordion interface
- * 
- * Includes comprehensive error handling to ensure popup remains functional
- * even if individual components fail.
- */
-async function initializePopup() {
-  try {
-    const settings = await loadSettings();
-    updateUI(settings);
-    updateStatus(settings.extensionEnabled);
-    setupEventListeners(settings);
-    initializeAccordions(); // Initialize accordion functionality
-  } catch (error) {
-    console.error('❌ Error initializing popup:', error);
-    updateStatus(false); // Show disabled status on error
-  }
-}
-
-/**
- * Load extension settings from Chrome storage with fallback
- * 
- * Attempts to load user settings from Chrome's sync storage. If storage
- * is unavailable (e.g., in development or if permissions are missing),
- * falls back to default settings to maintain functionality.
- * 
- * @returns {Promise<Object>} Promise resolving to settings object
- */
-async function loadSettings() {
-  try {
-    return await chrome.storage.sync.get(DEFAULT_SETTINGS);
-  } catch (error) {
-    console.warn('⚠️ Chrome storage not available, using defaults:', error);
-    return { ...DEFAULT_SETTINGS };
-  }
-}
-
-/**
- * Set up event listeners for all interactive elements
- * 
- * Configures event handling for:
- * - Toggle switches for settings
- * - Course lookup input and interactions
- * - Any dynamic UI elements
- * 
- * @param {Object} settings - Current extension settings
- */
-function setupEventListeners(settings) {
-  // Set up toggle switch event listeners
-  TOGGLE_IDS.forEach(toggleId => {
-    const toggle = document.getElementById(toggleId);
-    if (toggle) {
-      toggle.addEventListener('change', (e) => 
-        handleToggleChange(toggleId, e.target.checked, settings)
-      );
+class PopupManager {
+  /**
+   * Initialize the popup manager
+   * @constructor
+   */
+  constructor() {
+    /**
+     * Current extension settings
+     * @type {Object}
+     * @private
+     */
+    this.settings = { ...DEFAULT_SETTINGS };
+    
+    /**
+     * Debounce timer for search input
+     * @type {number|null}
+     * @private
+     */
+    this.searchDebounceTimer = null;
+    
+    /**
+     * Error tracking for analytics
+     * @type {Array<Object>}
+     * @private
+     */
+    this.errors = [];
+    
+    /**
+     * Performance metrics
+     * @type {Object}
+     * @private
+     */
+    this.metrics = {
+      startTime: Date.now(),
+      lookupCount: 0,
+      errorCount: 0
+    };
+    
+    // Initialize when DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => this.initialize());
+    } else {
+      this.initialize();
     }
-  });
-  
-  // Set up course lookup functionality
-  setupCourseLookup(settings);
-}
-
-function setupCourseLookup(settings) {
-  const lookupInput = document.getElementById('course-lookup-input');
-  const lookupResult = document.getElementById('course-lookup-result');
-  
-  if (lookupInput && lookupResult) {
-    lookupInput.addEventListener('input', (e) => {
-      const courseCode = e.target.value.trim().toUpperCase();
-      if (courseCode.length >= 2) {
-        lookupCourse(courseCode, lookupResult, settings);
-      } else {
-        lookupResult.innerHTML = '<span style="font-size: 12px;">Enter a course code above to see course information.</span>';
-      }
-    });
   }
-}
 
-function initializeAccordions() {
-  const accordionHeaders = document.querySelectorAll('.accordion-header');
-  
-  accordionHeaders.forEach(header => {
-    header.addEventListener('click', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
+  /**
+   * Initialize the popup interface
+   * @async
+   * @private
+   */
+  async initialize() {
+    console.log('🔧 Initializing popup interface...');
+    
+    try {
+      // Load current settings and update UI
+      this.settings = await this.loadSettings();
+      this.updateUI(this.settings);
+      this.updateStatus(this.settings.extensionEnabled);
       
-      const targetId = this.getAttribute('data-target');
-      const content = document.getElementById(targetId);
+      // Set up event handlers
+      this.setupEventListeners(this.settings);
+      this.initializeAccordions();
       
-      if (content) {
-        const isCurrentlyActive = this.classList.contains('active');
+      console.log('✅ Popup initialization complete');
+      
+    } catch (error) {
+      console.error('❌ Error initializing popup:', error);
+      this.handleError(error, 'Popup initialization failed');
+      this.updateStatus(false);
+    }
+  }
+
+  /**
+   * Load settings from Chrome storage with validation
+   * @async
+   * @returns {Promise<Object>} Current settings object
+   * @private
+   */
+  async loadSettings() {
+    try {
+      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
+        const storedSettings = await chrome.storage.sync.get(DEFAULT_SETTINGS);
+        return this.validateSettings(storedSettings);
+      } else {
+        console.warn('⚠️ Chrome storage not available, using defaults');
+        return { ...DEFAULT_SETTINGS };
+      }
+    } catch (error) {
+      console.warn('⚠️ Storage not available, using defaults:', error);
+      this.handleError(error, 'Settings loading failed');
+      return { ...DEFAULT_SETTINGS };
+    }
+  }
+
+  /**
+   * Validate settings object structure and types
+   * @param {Object} settings - Settings to validate
+   * @returns {Object} Validated settings object
+   * @private
+   */
+  validateSettings(settings) {
+    const validatedSettings = { ...DEFAULT_SETTINGS };
+    
+    // Validate each setting
+    for (const [key, defaultValue] of Object.entries(DEFAULT_SETTINGS)) {
+      if (key in settings) {
+        const value = settings[key];
         
-        // Close all accordions first
-        accordionHeaders.forEach(otherHeader => {
-          const otherTargetId = otherHeader.getAttribute('data-target');
-          const otherContent = document.getElementById(otherTargetId);
-          
-          if (otherContent) {
-            otherHeader.classList.remove('active');
-            otherContent.classList.remove('active');
-          }
-        });
-        
-        // If the clicked accordion wasn't active, open it
-        if (!isCurrentlyActive) {
-          this.classList.add('active');
-          content.classList.add('active');
+        // Type validation
+        if (typeof value === typeof defaultValue) {
+          validatedSettings[key] = value;
+        } else {
+          console.warn(`⚠️ Invalid type for setting '${key}': expected ${typeof defaultValue}, got ${typeof value}`);
         }
       }
-    });
-  });
-}
+    }
+    
+    return validatedSettings;
+  }
 
-async function lookupCourse(courseCode, resultDiv, settings) {
-  try {
-    // First try the background script's shared utility
-    const response = await chrome.runtime.sendMessage({
-      type: 'FIND_COURSE',
-      courseCode: courseCode
+  /**
+   * Set up all event listeners for the popup interface
+   * @param {Object} settings - Current settings object
+   * @private
+   */
+  setupEventListeners(settings) {
+    // Set up toggle listeners
+    TOGGLE_IDS.forEach(toggleId => {
+      const toggle = document.getElementById(toggleId);
+      if (toggle) {
+        toggle.addEventListener('change', (e) => 
+          this.handleToggleChange(toggleId, e.target.checked, settings)
+        );
+      } else {
+        console.warn(`⚠️ Toggle element '${toggleId}' not found`);
+      }
     });
     
-    if (response && response.success && response.courseInfo) {
-      displayCourseInfo(response.courseInfo, resultDiv, settings);
+    // Set up course lookup functionality
+    this.setupCourseLookup(settings);
+  }
+
+  /**
+   * Set up course lookup input and result handling
+   * @param {Object} settings - Current settings object
+   * @private
+   */
+  setupCourseLookup(settings) {
+    const lookupInput = document.getElementById('course-lookup-input');
+    const lookupResult = document.getElementById('course-lookup-result');
+    
+    if (!lookupInput || !lookupResult) {
+      console.warn('⚠️ Course lookup elements not found');
       return;
     }
     
-    // Fallback: Send course lookup request to content script for sophisticated matching
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    
-    try {
-      const contentResponse = await chrome.tabs.sendMessage(tab.id, {
-        type: 'LOOKUP_COURSE',
-        courseCode: courseCode
-      });
+    // Debounced input handler for better performance
+    lookupInput.addEventListener('input', (e) => {
+      const courseCode = e.target.value.trim().toUpperCase();
       
-      if (contentResponse && contentResponse.success && contentResponse.courseInfo) {
-        displayCourseInfo(contentResponse.courseInfo, resultDiv, settings);
-        return;
+      // Clear previous timer
+      if (this.searchDebounceTimer) {
+        clearTimeout(this.searchDebounceTimer);
       }
-    } catch (contentScriptError) {
-      console.log('Content script not available, using background script fallback');
+      
+      // Set new timer with debounce
+      this.searchDebounceTimer = setTimeout(() => {
+        if (courseCode.length >= 2) {
+          this.lookupCourse(courseCode, lookupResult, settings);
+        } else {
+          this.showDefaultLookupMessage(lookupResult);
+        }
+      }, 300); // 300ms debounce
+    });
+
+    // Initial message
+    this.showDefaultLookupMessage(lookupResult);
+  }
+
+  /**
+   * Show default message in lookup result area
+   * @param {HTMLElement} resultDiv - Result container element
+   * @private
+   */
+  showDefaultLookupMessage(resultDiv) {
+    resultDiv.innerHTML = `
+      <div style="color: #999; font-size: 12px; font-style: italic;">
+        Enter a course code above to see course information.
+        <br><br>
+        <strong>Examples:</strong> CS 157, IDS 157, MATH 108, ACM 95/100
+      </div>
+    `;
+  }
+
+  /**
+   * Initialize accordion functionality for the settings interface
+   * @private
+   */
+  initializeAccordions() {
+    const accordionHeaders = document.querySelectorAll('.accordion-header');
+    
+    accordionHeaders.forEach(header => {
+      header.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        this.handleAccordionClick(header, accordionHeaders);
+      });
+    });
+  }
+
+  /**
+   * Handle accordion header click events
+   * @param {HTMLElement} clickedHeader - The clicked accordion header
+   * @param {NodeList} allHeaders - All accordion headers
+   * @private
+   */
+  handleAccordionClick(clickedHeader, allHeaders) {
+    const targetId = clickedHeader.getAttribute('data-target');
+    const content = document.getElementById(targetId);
+    
+    if (!content) {
+      console.warn(`⚠️ Accordion target '${targetId}' not found`);
+      return;
     }
     
-    // If no course found
+    const isCurrentlyActive = clickedHeader.classList.contains('active');
+    
+    // Close all accordions first
+    allHeaders.forEach(otherHeader => {
+      const otherTargetId = otherHeader.getAttribute('data-target');
+      const otherContent = document.getElementById(otherTargetId);
+      
+      if (otherContent) {
+        otherHeader.classList.remove('active');
+        otherContent.classList.remove('active');
+      }
+    });
+    
+    // If the clicked accordion wasn't active, open it
+    if (!isCurrentlyActive) {
+      clickedHeader.classList.add('active');
+      content.classList.add('active');
+    }
+  }
+
+  /**
+   * Perform course lookup with multiple fallback strategies
+   * @param {string} courseCode - Course code to look up
+   * @param {HTMLElement} resultDiv - Element to display results
+   * @param {Object} settings - Current settings for display preferences
+   * @async
+   * @private
+   */
+  async lookupCourse(courseCode, resultDiv, settings) {
+    if (!courseCode || !resultDiv) {
+      return;
+    }
+    
+    this.metrics.lookupCount++;
+    
+    // Show loading indicator
     resultDiv.innerHTML = `
-      <div style="color: #999; font-style: italic; font-size: 10px;">
-        Course "${courseCode}" not found in catalog.
-        <br><br>
-        Try formats like: CS 157, IDS 157, MATH 108
+      <div style="color: #666; font-style: italic; font-size: 11px;">
+        🔍 Searching for "${courseCode}"...
       </div>
     `;
     
-  } catch (error) {
-    console.error('Error looking up course:', error);
-    resultDiv.innerHTML = '<div style="color: #999;">Error loading course information.</div>';
-  }
-}
-
-function displayCourseInfo(courseInfo, resultDiv, settings) {
-  // Check if this is a synthetic course
-  const isSyntheticCourse = courseInfo.prerequisites === "See individual sections";
-  
-  if (isSyntheticCourse) {
-    // For synthetic courses, show a helpful message about searching individual sections
-    const courseCode = courseInfo.course_code_original;
-    const sections = [];
-    
-    // Extract the base course code and generate section suggestions
-    const match = courseCode.match(/^(.+?)\s+([a-z]+)$/i);
-    if (match) {
-      const baseCourse = match[1];
-      const sectionPattern = match[2].toLowerCase();
+    try {
+      // Primary method: Try background script's course matching
+      const response = await chrome.runtime.sendMessage({
+        type: 'FIND_COURSE',
+        courseCode: courseCode
+      });
       
-      // Generate individual section names
-      for (const letter of sectionPattern) {
-        sections.push(`${baseCourse} ${letter}`);
+      if (response && response.success && response.courseInfo) {
+        this.displayCourseInfo(response.courseInfo, resultDiv, settings);
+        return;
       }
+      
+      // Fallback method: Try content script if available
+      try {
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        
+        const contentResponse = await chrome.tabs.sendMessage(tab.id, {
+          type: 'LOOKUP_COURSE',
+          courseCode: courseCode
+        });
+        
+        if (contentResponse && contentResponse.success && contentResponse.courseInfo) {
+          this.displayCourseInfo(contentResponse.courseInfo, resultDiv, settings);
+          return;
+        }
+      } catch (contentScriptError) {
+        console.log('ℹ️ Content script not available, using background fallback only');
+      }
+      
+      // No course found with any method
+      this.displayCourseNotFound(courseCode, resultDiv);
+      
+    } catch (error) {
+      console.error('❌ Error looking up course:', error);
+      this.handleError(error, 'Course lookup failed');
+      this.displayLookupError(resultDiv);
+    }
+  }
+
+  /**
+   * Display course information in the result area
+   * @param {Object} courseInfo - Course data object
+   * @param {HTMLElement} resultDiv - Element to display results
+   * @param {Object} settings - Display preferences
+   * @private
+   */
+  displayCourseInfo(courseInfo, resultDiv, settings) {
+    // Handle synthetic courses (multi-section courses)
+    if (this.isSyntheticCourse(courseInfo)) {
+      this.displaySyntheticCourseInfo(courseInfo, resultDiv, settings);
+      return;
     }
     
-    let html = `<div class="course-code">
-      ${courseCode}
-    </div>`;
+    // Regular course display
+    let html = this.buildCourseHTML(courseInfo, settings);
+    resultDiv.innerHTML = html;
+  }
+
+  /**
+   * Check if a course is synthetic (multi-section placeholder)
+   * @param {Object} courseInfo - Course information object
+   * @returns {boolean} True if course is synthetic
+   * @private
+   */
+  isSyntheticCourse(courseInfo) {
+    return courseInfo.prerequisites === "See individual sections" ||
+           courseInfo.is_synthetic === true;
+  }
+
+  /**
+   * Display information for synthetic multi-section courses
+   * @param {Object} courseInfo - Synthetic course data
+   * @param {HTMLElement} resultDiv - Element to display results
+   * @param {Object} settings - Display preferences
+   * @private
+   */
+  displaySyntheticCourseInfo(courseInfo, resultDiv, settings) {
+    const courseCode = courseInfo.course_code_original;
+    const sections = this.generateSectionSuggestions(courseCode);
+    
+    let html = `<div class="course-code">${this.escapeHtml(courseCode)}</div>`;
     
     if (settings.showName && courseInfo.name) {
-      html += `<div class="course-title">
-        ${courseInfo.name}
-      </div>`;
+      html += `<div class="course-title">${this.escapeHtml(courseInfo.name)}</div>`;
     }
     
-    // Show helpful message for synthetic courses
-    html += `<div class="description" style="color: #666; font-style: italic; margin-top: 8px;">
-      This is a multi-section course. Search individual sections separately:
-    </div>`;
+    // Helpful message for multi-section courses
+    html += `
+      <div class="description" style="color: #666; font-style: italic; margin-top: 8px;">
+        This is a multi-section course. Search individual sections separately:
+      </div>
+    `;
     
     if (sections.length > 0) {
       html += `<div style="margin-top: 4px; font-size: 11px;">`;
-      sections.forEach((section, index) => {
-        html += `<div style="margin: 2px 0;">"${section}"</div>`;
+      sections.forEach(section => {
+        html += `<div style="margin: 2px 0;">"${this.escapeHtml(section)}"</div>`;
       });
       html += `</div>`;
     }
     
     resultDiv.innerHTML = html;
-    return;
   }
-  
-  // Regular course display
-  let html = `<div class="course-code">
-    ${courseInfo.course_code_original}
-  </div>`;
-  
-  if (settings.showName && courseInfo.name) {
-    html += `<div class="course-title">
-      ${courseInfo.name}
-    </div>`;
-  }
-  
-  // Combine units and terms into one line
-  const unitsInfo = (settings.showUnits && courseInfo.units) ? courseInfo.units : '';
-  const termsInfo = (settings.showTerms && courseInfo.terms) ? courseInfo.terms : '';
-  
-  if (unitsInfo || termsInfo) {
-    const combinedInfo = [unitsInfo, termsInfo].filter(info => info).join(' | ');
-    html += `<div class="course-meta">
-      ${combinedInfo}
-    </div>`;
-  }
-  
-  if (settings.showPrerequisites && courseInfo.prerequisites) {
-    html += `<div class="prerequisites">
-      Prerequisites: ${courseInfo.prerequisites}
-    </div>`;
-  }
-  
-  if (settings.showDescription && courseInfo.description) {
-    html += `<div class="description">
-      ${courseInfo.description}
-    </div>`;
-  }
-  
-  if (settings.showInstructors && courseInfo.instructors) {
-    html += `<div class="instructors">
-      <strong>Instructors:</strong> ${courseInfo.instructors}
-    </div>`;
-  }
-  
-  resultDiv.innerHTML = html;
-}
 
-async function handleToggleChange(toggleId, checked, settings) {
-  const newSettings = { ...settings, [toggleId]: checked };
-  
-  try {
-    await chrome.storage.sync.set(newSettings);
-    Object.assign(settings, newSettings);
+  /**
+   * Generate section suggestions for multi-section courses
+   * @param {string} courseCode - Multi-section course code
+   * @returns {string[]} Array of individual section codes
+   * @private
+   */
+  generateSectionSuggestions(courseCode) {
+    const match = courseCode.match(/^(.+?)\s+([a-z]+)$/i);
+    if (!match) return [];
     
-    if (toggleId === 'extensionEnabled') {
-      updateStatus(checked);
+    const [, baseCourse, sectionPattern] = match;
+    const sections = [];
+    
+    for (const letter of sectionPattern.toLowerCase()) {
+      sections.push(`${baseCourse} ${letter}`);
     }
     
-    // Refresh the lookup result if it's currently showing something
+    return sections;
+  }
+
+  /**
+   * Build HTML for regular course display
+   * @param {Object} courseInfo - Course information
+   * @param {Object} settings - Display preferences
+   * @returns {string} HTML string
+   * @private
+   */
+  buildCourseHTML(courseInfo, settings) {
+    let html = `<div class="course-code">${this.escapeHtml(courseInfo.course_code_original)}</div>`;
+    
+    if (settings.showName && courseInfo.name) {
+      html += `<div class="course-title">${this.escapeHtml(courseInfo.name)}</div>`;
+    }
+    
+    // Combine units and terms into meta information
+    const metaItems = [];
+    if (settings.showUnits && courseInfo.units) {
+      metaItems.push(this.escapeHtml(courseInfo.units));
+    }
+    if (settings.showTerms && courseInfo.terms) {
+      metaItems.push(this.escapeHtml(courseInfo.terms));
+    }
+    
+    if (metaItems.length > 0) {
+      html += `<div class="course-meta">${metaItems.join(' | ')}</div>`;
+    }
+    
+    if (settings.showPrerequisites && courseInfo.prerequisites) {
+      html += `<div class="prerequisites">Prerequisites: ${this.escapeHtml(courseInfo.prerequisites)}</div>`;
+    }
+    
+    if (settings.showDescription && courseInfo.description) {
+      html += `<div class="description">${this.escapeHtml(courseInfo.description)}</div>`;
+    }
+    
+    if (settings.showInstructors && courseInfo.instructors) {
+      html += `<div class="instructors"><strong>Instructors:</strong> ${this.escapeHtml(courseInfo.instructors)}</div>`;
+    }
+    
+    return html;
+  }
+
+  /**
+   * Display course not found message
+   * @param {string} courseCode - The searched course code
+   * @param {HTMLElement} resultDiv - Element to display message
+   * @private
+   */
+  displayCourseNotFound(courseCode, resultDiv) {
+    resultDiv.innerHTML = `
+      <div style="color: #999; font-style: italic; font-size: 10px;">
+        Course "${this.escapeHtml(courseCode)}" not found in catalog.
+        <br><br>
+        <strong>Try these formats:</strong><br>
+        • CS 157<br>
+        • IDS 157<br>
+        • MATH 108<br>
+        • ACM 95/100<br>
+        • Ma/CS 6
+      </div>
+    `;
+  }
+
+  /**
+   * Display lookup error message
+   * @param {HTMLElement} resultDiv - Element to display message
+   * @private
+   */
+  displayLookupError(resultDiv) {
+    resultDiv.innerHTML = `
+      <div style="color: #d14900; font-size: 11px;">
+        ⚠️ Error loading course information.
+        <br>Please try again.
+      </div>
+    `;
+  }
+
+  /**
+   * Escape HTML to prevent XSS attacks
+   * @param {string} text - Text to escape
+   * @returns {string} Escaped HTML
+   * @private
+   */
+  escapeHtml(text) {
+    if (!text) return '';
+    
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  /**
+   * Handle toggle change events for settings
+   * @param {string} toggleId - ID of the toggle that changed
+   * @param {boolean} checked - New checked state
+   * @param {Object} settings - Current settings object
+   * @async
+   * @private
+   */
+  async handleToggleChange(toggleId, checked, settings) {
+    try {
+      // Update local settings
+      const newSettings = { ...settings, [toggleId]: checked };
+      
+      // Validate the updated settings
+      const validatedSettings = this.validateSettings(newSettings);
+      
+      // Save to Chrome storage
+      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
+        await chrome.storage.sync.set(validatedSettings);
+      }
+      
+      // Update local reference
+      Object.assign(this.settings, validatedSettings);
+      
+      // Update UI if master toggle changed
+      if (toggleId === 'extensionEnabled') {
+        this.updateStatus(checked);
+      }
+      
+      // Refresh course lookup if currently showing results
+      await this.refreshLookupIfActive(validatedSettings);
+      
+      // Notify content script of settings change
+      await this.notifyContentScript(validatedSettings);
+      
+      console.log(`⚙️ Setting '${toggleId}' updated to:`, checked);
+      
+    } catch (error) {
+      console.error('❌ Error updating settings:', error);
+      this.handleError(error, 'Settings update failed');
+      
+      // Revert UI state on error
+      const toggle = document.getElementById(toggleId);
+      if (toggle) {
+        toggle.checked = !checked;
+      }
+    }
+  }
+
+  /**
+   * Refresh course lookup display if currently active
+   * @param {Object} newSettings - Updated settings
+   * @async
+   * @private
+   */
+  async refreshLookupIfActive(newSettings) {
     const lookupInput = document.getElementById('course-lookup-input');
     const lookupResult = document.getElementById('course-lookup-result');
+    
     if (lookupInput && lookupResult && lookupInput.value.trim().length >= 2) {
-      lookupCourse(lookupInput.value.trim().toUpperCase(), lookupResult, newSettings);
+      const courseCode = lookupInput.value.trim().toUpperCase();
+      await this.lookupCourse(courseCode, lookupResult, newSettings);
+    }
+  }
+
+  /**
+   * Update the popup UI to reflect current settings
+   * @param {Object} settings - Settings object
+   * @private
+   */
+  updateUI(settings) {
+    TOGGLE_IDS.forEach(toggleId => {
+      const toggle = document.getElementById(toggleId);
+      if (toggle) {
+        toggle.checked = settings[toggleId];
+      } else {
+        console.warn(`⚠️ Toggle element '${toggleId}' not found during UI update`);
+      }
+    });
+  }
+
+  /**
+   * Update the extension status display
+   * @param {boolean} enabled - Whether extension is enabled
+   * @private
+   */
+  updateStatus(enabled) {
+    const headerSubtitle = document.getElementById('header-subtitle');
+    const statusText = document.getElementById('status-text');
+    
+    if (headerSubtitle && statusText) {
+      headerSubtitle.className = enabled ? 'header-subtitle enabled' : 'header-subtitle disabled';
+      statusText.textContent = enabled ? 'Enabled' : 'Disabled';
+    } else {
+      console.warn('⚠️ Status elements not found');
+    }
+  }
+
+  /**
+   * Notify content script of settings changes
+   * @param {Object} settings - Updated settings
+   * @async
+   * @private
+   */
+  async notifyContentScript(settings) {
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      
+      await chrome.tabs.sendMessage(tab.id, {
+        type: 'SETTINGS_UPDATED',
+        settings
+      });
+      
+    } catch (error) {
+      // Content script might not be loaded, which is acceptable
+      console.log('ℹ️ Could not notify content script (may not be loaded):', error.message);
+    }
+  }
+
+  /**
+   * Handle errors with consistent logging and user feedback
+   * @param {Error} error - Error object
+   * @param {string} context - Context where error occurred
+   * @private
+   */
+  handleError(error, context) {
+    this.metrics.errorCount++;
+    
+    const errorInfo = {
+      message: error.message,
+      context,
+      timestamp: new Date().toISOString(),
+      stack: error.stack
+    };
+    
+    this.errors.push(errorInfo);
+    
+    // Keep error log reasonable size
+    if (this.errors.length > 10) {
+      this.errors.shift();
     }
     
-    await notifyContentScript(newSettings);
-  } catch (error) {
-    console.error('Error updating settings:', error);
+    console.error(`❌ ${context}:`, error);
+  }
+
+  /**
+   * Get performance metrics for debugging
+   * @returns {Object} Performance metrics
+   * @public
+   */
+  getMetrics() {
+    return {
+      ...this.metrics,
+      uptime: Date.now() - this.metrics.startTime,
+      recentErrors: this.errors.slice(-5)
+    };
   }
 }
 
-function updateUI(settings) {
-  TOGGLE_IDS.forEach(toggleId => {
-    const toggle = document.getElementById(toggleId);
-    if (toggle) {
-      toggle.checked = settings[toggleId];
-    }
-  });
-}
-
-function updateStatus(enabled) {
-  const headerSubtitle = document.getElementById('header-subtitle');
-  const statusText = document.getElementById('status-text');
-  
-  if (headerSubtitle && statusText) {
-    headerSubtitle.className = enabled ? 'header-subtitle enabled' : 'header-subtitle disabled';
-    statusText.textContent = enabled ? 'Enabled' : 'Disabled';
-  }
-}
-
-async function notifyContentScript(settings) {
-  try {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    await chrome.tabs.sendMessage(tab.id, {
-      type: 'SETTINGS_UPDATED',
-      settings
-    });
-  } catch (error) {
-    // Content script might not be loaded, that's okay
-    console.log('Could not notify content script:', error);
-  }
-}
+// Initialize the popup manager
+const popupManager = new PopupManager();

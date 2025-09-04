@@ -1,2 +1,4 @@
 PRODUCTION_READY_SUMMARY.md
 __pycache__/
+working_uncleaned/
+test*

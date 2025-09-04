@@ -1,47 +1,30 @@
 """
-Caltech Course Catalog Parser and Processor
-===========================================
-
-This script converts the raw Caltech course catalog text file into a structured JSON format
-suitable for the browser extension. It performs comprehensive cleaning, parsing, and 
-data extraction to handle the complex formatting of the official catalog.
-
-Key Features:
-- Removes department headers, page numbers, and formatting artifacts
-- Parses complex course codes including cross-listed and multi-number courses
-- Extracts course metadata: titles, units, terms, prerequisites, descriptions, instructors
-- Handles multi-line entries and various formatting inconsistencies
-- Validates course data and filters out incomplete entries
-- Generates clean, structured JSON output for browser extension consumption
-
-Input: catalog_uncleaned.txt (raw catalog text)
-Output: catalog.json (structured course data)
+Caltech Course Catalog Parser
+Converts catalog_uncleaned.txt directly to structured JSON format for the browser extension.
+Combines cleaning and parsing functionality into a single, production-ready script.
 
 @author: Varun Rodrigues
 @version: 2.0
 @date: 2025
-@license: MIT
 """
 
-# Standard library imports for file processing and data structures
 import re
 import json
 import logging
 from pathlib import Path
 from typing import Dict, List, Optional, Any, Tuple, Set
 
-# Configure logging for debugging and monitoring
+# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
 
-# Configuration constants for catalog processing
-PAGE_NUMBER_THRESHOLD = 500  # Numbers above this are considered page numbers to remove
+# Configuration constants
+PAGE_NUMBER_THRESHOLD = 500
 
-# Department headers that appear in the catalog (to be removed during cleaning)
-# These headers organize courses by department but aren't needed in the final JSON
+# Department headers to remove (only if they appear alone on a line)
 DEPARTMENT_HEADERS: Set[str] = {
     "AEROSPACE", "ANTHROPOLOGY", "APPLIED AND COMPUTATIONAL MATH", "APPLIED & COMPUTATIONAL MATH",
     "APPLIED MECHANICS", "APPLIED PHYSICS", "ASTROPHYSICS", 
@@ -71,58 +54,37 @@ DEPARTMENT_HEADERS: Set[str] = {
     "STUDENT ACTIVITIES", "VISUAL CULTURE", "WRITING"
 }
 
-# Page number threshold - numbers above this value are treated as page numbers
+# Page number threshold (numbers above this are considered page numbers)
 PAGE_NUMBER_THRESHOLD = 500
 
-# Department name variations for validation and cross-referencing
-# Includes alternative spellings and formats that appear in course descriptions
-DEPARTMENT_NAMES = list(DEPARTMENT_HEADERS) + [
-    "BUSINESS ECONOMICS & MANAGEMENT",  # Alternative format
-]
+# Department names for course validation (reusing headers for consistency)
+DEPARTMENT_NAMES = list(DEPARTMENT_HEADERS)
 
-# Regular expression patterns for parsing different course code formats
-# These patterns handle the variety of course code formats found in the Caltech catalog
+# Regular expression patterns for course parsing
 COURSE_CODE_PATTERNS = [
-    # Pattern 1: Standard single department with one number (e.g., "CS 156 a.")
+    # Pattern 1: Standard single department with one number
     r'^([A-Z][a-zA-Z]{1,4})\s+(\d{1,3})\s*([a-z]*)\.',
     
-    # Pattern 2: Cross-listed departments with one number (e.g., "ACM/CS 156 a.")
+    # Pattern 2: Cross-listed departments with one number  
     r'^([A-Z][a-zA-Z]{1,4}(?:/[A-Z][a-zA-Z]{1,4})+)\s+(\d{1,3})\s*([a-z]*)\.',
     
-    # Pattern 3: Single department with multiple numbers (e.g., "Ma 6/106 a.")
+    # Pattern 3: Single department with multiple numbers
     r'^([A-Z][a-zA-Z]{1,4})\s+(\d{1,3}/\d{1,3})\s*([a-z]*)\.',
     
-    # Pattern 4: Cross-listed departments with multiple numbers (e.g., "Ma/CS 6/106 a.")
+    # Pattern 4: Cross-listed departments with multiple numbers
     r'^([A-Z][a-zA-Z]{1,4}(?:/[A-Z][a-zA-Z]{1,4})+)\s+(\d{1,3}/\d{1,3})\s*([a-z]*)\.'
 ]
 
 
 def is_department_header(line: str) -> bool:
-    """
-    Check if a line contains only a department header that should be removed.
-    
-    Args:
-        line: Text line to check
-        
-    Returns:
-        True if line is a department header, False otherwise
-    """
+    """Check if a line contains only a department header."""
     return line.upper() in DEPARTMENT_HEADERS
 
 
 def is_multiline_department_header(lines: List[str], start_index: int) -> int:
     """
     Check if consecutive lines starting at start_index form a department header.
-    
-    Some department names span multiple lines in the catalog (e.g., "BUSINESS ECONOMICS" on 
-    one line and "AND MANAGEMENT" on the next). This function detects such cases.
-    
-    Args:
-        lines: List of all text lines
-        start_index: Starting index to check from
-        
-    Returns:
-        Number of lines that form the header (0 if no match found)
+    Returns the number of lines that form the header, or 0 if no match.
     """
     if start_index >= len(lines):
         return 0
@@ -146,37 +108,12 @@ def is_multiline_department_header(lines: List[str], start_index: int) -> int:
 
 
 def is_page_number(line: str) -> bool:
-    """
-    Check if a line contains only a page number that should be removed.
-    
-    Page numbers in the catalog are typically large numbers (>500) that appear
-    alone on a line and serve as pagination markers.
-    
-    Args:
-        line: Text line to check
-        
-    Returns:
-        True if line is a page number above threshold, False otherwise
-    """
+    """Check if a line contains only a page number above the threshold."""
     return line.isdigit() and int(line) > PAGE_NUMBER_THRESHOLD
 
 
 def clean_catalog_text(lines: List[str]) -> List[str]:
-    """
-    Remove department headers, page numbers, and other formatting artifacts from catalog lines.
-    
-    This function performs the primary cleaning of the raw catalog text, removing:
-    - Single-line department headers
-    - Multi-line department headers
-    - Page numbers and associated page footers
-    - Empty lines and whitespace
-    
-    Args:
-        lines: List of raw catalog text lines
-        
-    Returns:
-        List of cleaned text lines ready for course parsing
-    """
+    """Remove department headers and page numbers from catalog lines."""
     result = []
     i = 0
     removed_count = {"single": 0, "multi": 0, "pages": 0}
@@ -213,38 +150,19 @@ def clean_catalog_text(lines: List[str]) -> List[str]:
         result.append(lines[i])
         i += 1
     
-    logger.info(f"Cleaning complete - Removed: {removed_count['single']} single-line headers, "
-               f"{removed_count['multi']} multi-line headers, {removed_count['pages']} page numbers")
+    print(f"Removed: {removed_count['single']} single-line headers, {removed_count['multi']} multi-line headers, {removed_count['pages']} page numbers")
     return result
 
 
 def parse_course_code(course_code_str: str) -> Dict[str, List[str]]:
     """
-    Parse a course code string into structured format with departments, numbers, and letters.
-    
-    This function handles the complexity of Caltech course codes, including:
-    - Cross-listed courses: "ACM/CS 156" → departments: ["ACM", "CS"], numbers: ["156"]
-    - Multi-number courses: "Ma 6/106" → departments: ["Ma"], numbers: ["6", "106"]  
-    - Section letters: "Ph 12 abc" → departments: ["Ph"], numbers: ["12"], letters: ["a", "b", "c"]
-    - Combined formats: "Ma/CS 6/106 abc"
+    Parses a course code string into structured format.
     
     Args:
-        course_code_str: Raw course code string (e.g., "ACM/CS 156 ab.")
-        
+        course_code_str: Course code like "Ae/APh/CE/ME 101 abc"
+    
     Returns:
-        Dictionary with parsed components:
-        {
-            "departments": ["ACM", "CS"],
-            "numbers": ["156"], 
-            "letters": ["a", "b"]
-        }
-        
-    Examples:
-        parse_course_code("ACM/CS 156 ab.") →
-        {"departments": ["ACM", "CS"], "numbers": ["156"], "letters": ["a", "b"]}
-        
-        parse_course_code("Ma 6/106 c.") →  
-        {"departments": ["Ma"], "numbers": ["6", "106"], "letters": ["c"]}
+        Dict with "prefixes", "numbers", and "letters" arrays
     """
     course_code_str = course_code_str.strip()
     parts = course_code_str.split()
