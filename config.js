@@ -7,9 +7,9 @@
  * 
  * @fileoverview Global configuration for the Caltech Course Code Tooltip Extension
  * @author Varun Rodrigues <vrodrigu@caltech.edu>
- * @version 2.1.0
+ * @version 1.0.0
  * @since 1.0.0
- * @copyright 2024 Varun Rodrigues
+ * @copyright 2025 Varun Rodrigues
  * @license MIT
  */
 
@@ -51,7 +51,7 @@
      * Matches patterns like:
      * - "CS 156" (standard format)
      * - "Ae/APh/CE/ME 101" (cross-listed courses)
-     * - "Math 108 abc" (courses with letter suffixes)
+     * - "Ma 108 abc" (courses with letter suffixes)
      * - "ACM 95/100" (compound number courses)
      * 
      * Pattern breakdown:
@@ -137,7 +137,7 @@
      */
     EXTENSION_INFO: {
       NAME: 'Caltech Course Code Tooltip',
-      VERSION: '2.1.0',
+      VERSION: '1.0.0',
       AUTHOR: 'Varun Rodrigues',
       EMAIL: 'vrodrigu@caltech.edu',
       CLASS: '2029',

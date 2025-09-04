@@ -10,7 +10,7 @@
  * 
  * @fileoverview Popup interface stylesheet for the Caltech Course Code Tooltip Extension
  * @author Varun Rodrigues <vrodrigu@caltech.edu>
- * @version 2.1.0
+ * @version 1.0.0
  * @since 1.0.0
  * @copyright 2024 Varun Rodrigues
  * @license MIT
@@ -196,16 +196,16 @@ button, input, select, textarea {
 
 
 .toggle-section {
-  margin: 0 12px 12px 12px;
-  padding: 16px 20px;
+  margin: 0 8px 8px 8px;
+  padding: 10px 14px;
   background-color: #ffffff;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
+  border-radius: 6px;
 }
 
 .toggle-section h3 {
-  margin: 0 0 16px 0;
-  font-size: 13px;
+  margin: 0 0 10px 0;
+  font-size: 11px;
   font-weight: 600;
   color: #333;
   text-transform: uppercase;
@@ -216,8 +216,8 @@ button, input, select, textarea {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 4px;
-  padding: 8px;
+  margin-bottom: 2px;
+  padding: 6px;
   font-weight: 400;
   border-bottom: 1px solid #f0f0f0;
 }
@@ -230,15 +230,15 @@ button, input, select, textarea {
 .toggle-label {
   color: #333;
   font-weight: 500;
-  font-size: 12px;
-  line-height: 1.4;
+  font-size: 11px;
+  line-height: 1.3;
 }
 
 .toggle-switch {
   position: relative;
   display: inline-block;
-  width: 36px;
-  height: 20px;
+  width: 30px;
+  height: 16px;
 }
 
 .toggle-switch input {
@@ -260,16 +260,16 @@ button, input, select, textarea {
   bottom: 0;
   background-color: #ccc;
   transition: .3s;
-  border-radius: 20px;
+  border-radius: 16px;
 }
 
 .slider:before {
   position: absolute;
   content: "";
-  height: 14px;
-  width: 14px;
-  left: 3px;
-  bottom: 3px;
+  height: 12px;
+  width: 12px;
+  left: 2px;
+  bottom: 2px;
   background-color: white;
   transition: .3s;
   border-radius: 50%;
@@ -280,7 +280,7 @@ input:checked + .slider {
 }
 
 input:checked + .slider:before {
-  transform: translateX(16px);
+  transform: translateX(14px);
 }
 
 .accordion-section {
@@ -289,7 +289,7 @@ input:checked + .slider:before {
 }
 
 .accordion-header {
-  padding: 10px 18px;
+  padding: 8px 14px;
   cursor: pointer;
   user-select: none;
   display: flex;
@@ -308,13 +308,13 @@ input:checked + .slider:before {
 
 .accordion-header h3 {
   margin: 0;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: bold;
 }
 
 .accordion-arrow {
-  width: 7px;
-  height: 12px;
+  width: 6px;
+  height: 10px;
   background-image: url('images/icon-chevron-orange-caltech.png');
   background-size: contain;
   background-repeat: no-repeat;
@@ -334,7 +334,7 @@ input:checked + .slider:before {
 }
 
 .accordion-content {
-  padding: 8px;
+  padding: 6px;
   display: none;
 }
 
@@ -466,13 +466,13 @@ input:checked + .slider:before {
     color: #555;
 }
 
-.email-link {
+.email-link, .github-link{
     color: #d14900;
     text-decoration: none;
     font-weight: 500;
 }
 
-.email-link:hover {
+.email-link:hover, .github-link:hover {
     text-decoration: underline;
 }
 
@@ -480,6 +480,15 @@ input:checked + .slider:before {
 .instructions-text {
     margin: 0 0 4px 0;
     font-size: 11px;
-    color: #333;
+    color: #555;
 }
 
+.user-guide-accordion h4 {
+  margin: 2px;
+  font-size: 12px;
+}
+
+.user-guide-accordion p {
+  margin: 2px;
+  font-size: 10px;
+}

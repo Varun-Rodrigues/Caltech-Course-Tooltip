@@ -10,9 +10,9 @@
  * 
  * @fileoverview Background service worker for the Caltech Course Code Tooltip Extension
  * @author Varun Rodrigues <vrodrigu@caltech.edu>
- * @version 2.1.0
+ * @version 1.0.0
  * @since 1.0.0
- * @copyright 2024 Varun Rodrigues
+ * @copyright 2025 Varun Rodrigues
  * @license MIT
  */
 
@@ -559,9 +559,6 @@ async function initializeSettings() {
     // Only set defaults if no settings exist
     if (Object.keys(existingSettings).length === 0) {
       await chrome.storage.sync.set(DEFAULT_SETTINGS);
-      console.log('✅ Default settings initialized');
-    } else {
-      console.log('✅ Existing settings found, skipping initialization');
     }
     
   } catch (error) {
@@ -574,16 +571,13 @@ async function initializeSettings() {
  * Handle extension installation and updates
  */
 chrome.runtime.onInstalled.addListener(async (details) => {
-  console.log(`🚀 Extension ${details.reason}:`, details);
-  
+
   try {
     await initializeSettings();
     
     // Preload catalog on install for better performance
     if (details.reason === 'install') {
-      console.log('📚 Preloading course catalog...');
       await loadCourseData();
-      console.log('✅ Course catalog preloaded');
     }
     
   } catch (error) {
@@ -602,9 +596,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     sendResponse({ success: false, error: 'Invalid message format' });
     return false;
   }
-
-  console.log(`📨 Message received: ${message.type}`, message);
-
   switch (message.type) {
     case 'GET_CATALOG_DATA':
       handleGetCatalogData(sendResponse);
@@ -697,7 +688,6 @@ function handleGetStats(sendResponse) {
 function handleClearCache(sendResponse) {
   try {
     cacheManager.clear();
-    console.log('🗑️ Cache cleared');
     sendResponse({ success: true, message: 'Cache cleared successfully' });
   } catch (error) {
     console.error('❌ Error clearing cache:', error);
@@ -709,13 +699,9 @@ function handleClearCache(sendResponse) {
  * Cleanup when extension is suspended
  */
 chrome.runtime.onSuspend.addListener(() => {
-  console.log('💤 Extension suspending, cleaning up...');
-  
   if (cacheManager) {
     cacheManager.destroy();
   }
-  
-  console.log('✅ Cleanup completed');
 });
 
 // Export for testing purposes (if in test environment)

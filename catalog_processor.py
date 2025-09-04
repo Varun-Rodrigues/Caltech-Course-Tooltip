@@ -4,7 +4,7 @@ Converts catalog_uncleaned.txt directly to structured JSON format for the browse
 Combines cleaning and parsing functionality into a single, production-ready script.
 
 @author: Varun Rodrigues
-@version: 2.0
+@version: 1.0
 @date: 2025
 """
 

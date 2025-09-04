@@ -15,7 +15,7 @@
  * 
  * @fileoverview Popup interface for the Caltech Course Code Tooltip Extension
  * @author Varun Rodrigues <vrodrigu@caltech.edu>
- * @version 2.1.0
+ * @version 1.0.0
  * @since 1.0.0
  * @copyright 2024 Varun Rodrigues
  * @license MIT
@@ -101,8 +101,6 @@ class PopupManager {
    * @private
    */
   async initialize() {
-    console.log('🔧 Initializing popup interface...');
-    
     try {
       // Load current settings and update UI
       this.settings = await this.loadSettings();
@@ -112,9 +110,6 @@ class PopupManager {
       // Set up event handlers
       this.setupEventListeners(this.settings);
       this.initializeAccordions();
-      
-      console.log('✅ Popup initialization complete');
-      
     } catch (error) {
       console.error('❌ Error initializing popup:', error);
       this.handleError(error, 'Popup initialization failed');
@@ -239,7 +234,7 @@ class PopupManager {
       <div style="color: #999; font-size: 12px; font-style: italic;">
         Enter a course code above to see course information.
         <br><br>
-        <strong>Examples:</strong> CS 157, IDS 157, MATH 108, ACM 95/100
+        <strong>Examples:</strong> CS 157, IDS 157, MA 108, ACM 95/100
       </div>
     `;
   }
@@ -344,7 +339,6 @@ class PopupManager {
           return;
         }
       } catch (contentScriptError) {
-        console.log('ℹ️ Content script not available, using background fallback only');
       }
       
       // No course found with any method
@@ -498,7 +492,7 @@ class PopupManager {
         <strong>Try these formats:</strong><br>
         • CS 157<br>
         • IDS 157<br>
-        • MATH 108<br>
+        • MA 108<br>
         • ACM 95/100<br>
         • Ma/CS 6
       </div>
@@ -567,9 +561,6 @@ class PopupManager {
       
       // Notify content script of settings change
       await this.notifyContentScript(validatedSettings);
-      
-      console.log(`⚙️ Setting '${toggleId}' updated to:`, checked);
-      
     } catch (error) {
       console.error('❌ Error updating settings:', error);
       this.handleError(error, 'Settings update failed');
@@ -648,7 +639,6 @@ class PopupManager {
       
     } catch (error) {
       // Content script might not be loaded, which is acceptable
-      console.log('ℹ️ Could not notify content script (may not be loaded):', error.message);
     }
   }
 
