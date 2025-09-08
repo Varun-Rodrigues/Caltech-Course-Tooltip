@@ -4,7 +4,6 @@
  * Modern CSS styles for the extension's popup interface with support for:
  * - Professional Caltech branding
  * - Responsive design principles
- * - Dark mode compatibility
  * - Accessibility features
  * - Smooth animations and interactions
  * 
@@ -69,19 +68,6 @@
   --transition-fast: 0.15s;
   --transition-normal: 0.2s;
   --transition-slow: 0.3s;
-}
-
-/* Dark mode overrides */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --popup-bg: #1e1e1e;
-    --popup-text: #e8e8e8;
-    --popup-text-light: #b8b8b8;
-    --popup-text-muted: #888888;
-    --popup-border: #404040;
-    --popup-shadow: rgba(0, 0, 0, 0.3);
-    --toggle-inactive: #555555;
-  }
 }
 
 /* ==========================================================================
