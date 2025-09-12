@@ -51,20 +51,38 @@
      * Matches patterns like:
      * - "CS 156" (standard format)
      * - "Ae/APh/CE/ME 101" (cross-listed courses)
-     * - "Ma 108 abc" (courses with letter suffixes)
+     * - "Ma 108 abc" (courses with letter suffixes - only a, b, c combinations)
+     * - "Ph 2c/12c" (compound courses with attached letters)
+     * - "ma 1a/108c" (compound courses with different letters)
      * - "ACM 95/100" (compound number courses)
      * 
      * Pattern breakdown:
      * - ([A-Za-z][a-zA-Z]{1,4}(?:\/[A-Za-z][a-zA-Z]{1,4})*(?:\/[A-Za-z][a-zA-Z]{1,4})*) - Department prefix(es)
      * - \s+ - Required whitespace (at least one space)
-     * - (\d{1,3}(?:\/\d{1,3})*) - Course number(s)
-     * - \s* - Optional whitespace
-     * - ([a-z]{1,3})? - Optional letter suffix (1-3 letters)
-     * - (?=\s*[.,;!?()\[\]{}]|$|\s*\n|\s+(?:and|or)(?:\s|$)) - Positive lookahead with word boundary detection
+     * - (\d{1,3}[a-zA-Z]{0,3}(?:\/\d{1,3}[a-zA-Z]{0,3})*|\d{1,3}(?:\/\d{1,3})*)(?:\s+([abc]{1,3}))? - Numbers with optional attached letters OR numbers with separate letters
+     * - (?=\s*[.,;:!?()\[\]{}'""]|$|\s*\n|\s+(?:and|or)\b|\s) - Positive lookahead requiring word boundary
+     * 
+     * Note: Edge cases with d, x, and Bi 1 special letters (e, g, i, m) are handled separately
      * 
      * @type {RegExp}
      */
-    COURSE_CODE_PATTERN: /\b([A-Za-z][a-zA-Z]{1,4}(?:\/[A-Za-z][a-zA-Z]{1,4})*(?:\/[A-Za-z][a-zA-Z]{1,4})*)\s+(\d{1,3}(?:\/\d{1,3})*)\s*([a-z]{1,3})?(?=\s*[.,;!?()\[\]{}]|$|\s*\n|\s+(?:and|or)(?:\s|$))/gi,
+    COURSE_CODE_PATTERN: /\b([A-Za-z][a-zA-Z]{1,4}(?:\/[A-Za-z][a-zA-Z]{1,4})*(?:\/[A-Za-z][a-zA-Z]{1,4})*)\s+(\d{1,3}[a-zA-Z]{0,3}(?:\/\d{1,3}[a-zA-Z]{0,3})*|\d{1,3}(?:\/\d{1,3})*)(?:\s+([abc]{1,3}))?(?=\s*[.,;:!?()\[\]{}'""]|$|\s*\n|\s+(?:and|or)\b|\s)/gi,
+
+    /**
+     * Edge case patterns for courses with non-standard letter suffixes
+     * These patterns handle specific courses that use letters beyond a, b, c
+     * @type {Object}
+     */
+    EDGE_CASE_PATTERNS: {
+      // Courses with 'd' variants: Bi 250, Ge 11, Ge 169, Ma 1
+      D_VARIANTS: /\b((?:Bi)\s+250|(?:Ge)\s+11|(?:Ge)\s+169|(?:Ma)\s+1)(?:\s+([abcd]{1,4}))?(?=\s*[.,;:!?()\[\]{}'""]|$|\s*\n|\s+(?:and|or)\b|\s)/gi,
+      
+      // Courses with 'x' variants: Bi 1, Ch 3, CS 1
+      X_VARIANTS: /\b((?:Bi)\s+1|(?:Ch)\s+3|(?:CS)\s+1)(?:\s+([abcx]{1,4}))?(?=\s*[.,;:!?()\[\]{}'""]|$|\s*\n|\s+(?:and|or)\b|\s)/gi,
+      
+      // Bi 1 special variants: includes e, g, i, m in addition to standard letters
+      BI_1_SPECIAL: /\b((?:Bi)\s+1)(?:\s+([abcegimx]{1,4}))?(?=\s*[.,;:!?()\[\]{}'""]|$|\s*\n|\s+(?:and|or)\b|\s)/gi
+    },
 
     /**
      * Tooltip behavior and display configuration
