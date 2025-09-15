@@ -1,1 +1,6 @@
 chrome-web-store-deployment.md
+.venv/
+broken.txt
+debug*
+test*
+simple_pattern_test.html

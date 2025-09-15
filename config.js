@@ -7,7 +7,7 @@
  * 
  * @fileoverview Global configuration for the Caltech Course Code Tooltip Extension
  * @author Varun Rodrigues <vrodrigu@caltech.edu>
- * @version 1.0.0
+ * @version 1.1.0
  * @since 1.0.0
  * @copyright 2025 Varun Rodrigues
  * @license MIT
@@ -43,7 +43,7 @@
       showTerms: true,             // Term offered display
       showPrerequisites: true,     // Prerequisites display
       showDescription: false,      // Full description display (disabled by default for performance)
-      showInstructors: true        // Instructor information display
+      showInstructors: true        // Instructor information display (standardized to true)
     },
 
     /**
@@ -51,20 +51,38 @@
      * Matches patterns like:
      * - "CS 156" (standard format)
      * - "Ae/APh/CE/ME 101" (cross-listed courses)
-     * - "Ma 108 abc" (courses with letter suffixes)
+     * - "Ma 108 abc" (courses with letter suffixes - only a, b, c combinations)
+     * - "Ph 2c/12c" (compound courses with attached letters)
+     * - "ma 1a/108c" (compound courses with different letters)
      * - "ACM 95/100" (compound number courses)
      * 
      * Pattern breakdown:
      * - ([A-Za-z][a-zA-Z]{1,4}(?:\/[A-Za-z][a-zA-Z]{1,4})*(?:\/[A-Za-z][a-zA-Z]{1,4})*) - Department prefix(es)
      * - \s+ - Required whitespace (at least one space)
-     * - (\d{1,3}(?:\/\d{1,3})*) - Course number(s)
-     * - \s* - Optional whitespace
-     * - ([a-z]{1,3})? - Optional letter suffix (1-3 letters)
-     * - (?=\s*[.,;!?()\[\]{}]|$|\s*\n|\s+(?:and|or)(?:\s|$)) - Positive lookahead with word boundary detection
+     * - (\d{1,3}[a-zA-Z]{0,3}(?:\/\d{1,3}[a-zA-Z]{0,3})*|\d{1,3}(?:\/\d{1,3})*)(?:\s+([abc]{1,3}))? - Numbers with optional attached letters OR numbers with separate letters
+     * - (?=\s*[.,;:!?()\[\]{}'""]|$|\s*\n|\s+(?:and|or)\b|\s) - Positive lookahead requiring word boundary
+     * 
+     * Note: Edge cases with d, x, and Bi 1 special letters (e, g, i, m) are handled separately
      * 
      * @type {RegExp}
      */
-    COURSE_CODE_PATTERN: /\b([A-Za-z][a-zA-Z]{1,4}(?:\/[A-Za-z][a-zA-Z]{1,4})*(?:\/[A-Za-z][a-zA-Z]{1,4})*)\s+(\d{1,3}(?:\/\d{1,3})*)\s*([a-z]{1,3})?(?=\s*[.,;!?()\[\]{}]|$|\s*\n|\s+(?:and|or)(?:\s|$))/gi,
+    COURSE_CODE_PATTERN: /\b([A-Za-z][a-zA-Z]{1,4}(?:\/[A-Za-z][a-zA-Z]{1,4})*(?:\/[A-Za-z][a-zA-Z]{1,4})*)\s+(\d{1,3}[a-zA-Z]{0,3}(?:\/\d{1,3}[a-zA-Z]{0,3})*|\d{1,3}(?:\/\d{1,3})*)(?:\s+([abc]{1,3}))?(?=\s*[.,;:!?()\[\]{}'""]|$|\s*\n|\s+(?:and|or)\b|\s)/gi,
+
+    /**
+     * Edge case patterns for courses with non-standard letter suffixes
+     * These patterns handle specific courses that use letters beyond a, b, c
+     * @type {Object}
+     */
+    EDGE_CASE_PATTERNS: {
+      // Courses with 'd' variants: Bi 250, Ge 11, Ge 169, Ma 1
+      D_VARIANTS: /\b((?:Bi)\s+250|(?:Ge)\s+11|(?:Ge)\s+169|(?:Ma)\s+1)(?:\s+([abcd]{1,4}))?(?=\s*[.,;:!?()\[\]{}'""]|$|\s*\n|\s+(?:and|or)\b|\s)/gi,
+      
+      // Courses with 'x' variants: Bi 1, Ch 3, CS 1
+      X_VARIANTS: /\b((?:Bi)\s+1|(?:Ch)\s+3|(?:CS)\s+1)(?:\s+([abcx]{1,4}))?(?=\s*[.,;:!?()\[\]{}'""]|$|\s*\n|\s+(?:and|or)\b|\s)/gi,
+      
+      // Bi 1 special variants: includes e, g, i, m in addition to standard letters
+      BI_1_SPECIAL: /\b((?:Bi)\s+1)(?:\s+([abcegimx]{1,4}))?(?=\s*[.,;:!?()\[\]{}'""]|$|\s*\n|\s+(?:and|or)\b|\s)/gi
+    },
 
     /**
      * Tooltip behavior and display configuration
@@ -137,7 +155,7 @@
      */
     EXTENSION_INFO: {
       NAME: 'Caltech Course Code Tooltip',
-      VERSION: '1.0.0',
+      VERSION: '1.1.0',
       AUTHOR: 'Varun Rodrigues',
       EMAIL: 'vrodrigu@caltech.edu',
       CLASS: '2029',
@@ -171,6 +189,50 @@
       SHORTHAND_NOTATION: true,   // Support for shorthand (e.g., "CS 15, 16, 17")
       DARK_MODE: true,            // Automatic dark mode detection
       ANALYTICS: false            // Usage analytics (disabled for privacy)
+    },
+
+    /**
+     * Utility methods for configuration validation and access
+     * @type {Object}
+     */
+    UTILS: {
+      /**
+       * Validate a settings object against the default settings schema
+       * @param {Object} settings - Settings object to validate
+       * @returns {Object} Validated settings object
+       */
+      validateSettings(settings) {
+        if (!settings || typeof settings !== 'object') {
+          return { ...CaltechExtensionConfig.DEFAULT_SETTINGS };
+        }
+
+        const validatedSettings = { ...CaltechExtensionConfig.DEFAULT_SETTINGS };
+        
+        for (const [key, defaultValue] of Object.entries(CaltechExtensionConfig.DEFAULT_SETTINGS)) {
+          if (key in settings && typeof settings[key] === typeof defaultValue) {
+            validatedSettings[key] = settings[key];
+          }
+        }
+        
+        return validatedSettings;
+      },
+
+      /**
+       * Check if a feature flag is enabled
+       * @param {string} flagName - Name of the feature flag
+       * @returns {boolean} True if feature is enabled
+       */
+      isFeatureEnabled(flagName) {
+        return CaltechExtensionConfig.FEATURE_FLAGS[flagName] === true;
+      },
+
+      /**
+       * Get the current version of the configuration
+       * @returns {string} Configuration version
+       */
+      getVersion() {
+        return CaltechExtensionConfig.EXTENSION_INFO.VERSION;
+      }
     }
   };
 
@@ -184,6 +246,7 @@
   Object.freeze(CaltechExtensionConfig.EXTENSION_INFO);
   Object.freeze(CaltechExtensionConfig.ACCESSIBILITY_CONFIG);
   Object.freeze(CaltechExtensionConfig.FEATURE_FLAGS);
+  Object.freeze(CaltechExtensionConfig.UTILS);
   Object.freeze(CaltechExtensionConfig);
 
   // Expose configuration to global scope for access by other scripts

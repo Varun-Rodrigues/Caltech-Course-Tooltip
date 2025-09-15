@@ -10,7 +10,7 @@
  * 
  * @fileoverview Background service worker for the Caltech Course Code Tooltip Extension
  * @author Varun Rodrigues <vrodrigu@caltech.edu>
- * @version 1.0.0
+ * @version 1.1.0
  * @since 1.0.0
  * @copyright 2025 Varun Rodrigues
  * @license MIT
@@ -22,16 +22,17 @@
  * Default settings configuration
  * Fallback when window.CaltechExtensionConfig is not available
  * @type {Object}
+ * @readonly
  */
-const DEFAULT_SETTINGS = {
+const DEFAULT_SETTINGS = Object.freeze({
   extensionEnabled: true,
   showName: true,
   showUnits: true,
   showTerms: true,
   showPrerequisites: true,
   showDescription: false,
-  showInstructors: false
-};
+  showInstructors: true // Fixed: was false in background, true in config - standardizing to true
+});
 
 /**
  * Cache manager for storing course data and reducing API calls
@@ -49,9 +50,7 @@ class CacheManager {
     this.timers = new Map();
     
     // Setup periodic cleanup to prevent memory leaks
-    this.cleanupInterval = setInterval(() => {
-      this.cleanup();
-    }, ttl);
+    this.cleanupInterval = setInterval(() => this.cleanup(), ttl);
   }
 
   /**
@@ -61,8 +60,9 @@ class CacheManager {
    */
   set(key, value) {
     // Clear existing timer if present
-    if (this.timers.has(key)) {
-      clearTimeout(this.timers.get(key));
+    const existingTimer = this.timers.get(key);
+    if (existingTimer) {
+      clearTimeout(existingTimer);
     }
 
     // Store the value
@@ -72,10 +72,7 @@ class CacheManager {
     });
 
     // Set expiration timer
-    const timer = setTimeout(() => {
-      this.delete(key);
-    }, this.ttl);
-    
+    const timer = setTimeout(() => this.delete(key), this.ttl);
     this.timers.set(key, timer);
   }
 
@@ -104,8 +101,9 @@ class CacheManager {
   delete(key) {
     this.cache.delete(key);
     
-    if (this.timers.has(key)) {
-      clearTimeout(this.timers.get(key));
+    const timer = this.timers.get(key);
+    if (timer) {
+      clearTimeout(timer);
       this.timers.delete(key);
     }
   }
@@ -115,9 +113,7 @@ class CacheManager {
    */
   clear() {
     // Clear all timers
-    for (const timer of this.timers.values()) {
-      clearTimeout(timer);
-    }
+    this.timers.forEach(timer => clearTimeout(timer));
     
     this.cache.clear();
     this.timers.clear();
@@ -154,6 +150,7 @@ class CacheManager {
   destroy() {
     if (this.cleanupInterval) {
       clearInterval(this.cleanupInterval);
+      this.cleanupInterval = null;
     }
     this.clear();
   }
@@ -207,22 +204,15 @@ class CourseMatchingUtils {
     
     for (const variation of inputVariations) {
       const upperVariation = variation.toUpperCase().trim();
-      const normalizedOriginal = originalCode.replace(/[\/\s]+/g, '');
-      const normalizedVariation = upperVariation.replace(/[\/\s]+/g, '');
       
       // Direct exact matches (fastest check first)
-      if (originalCode === upperVariation ||
-          originalCode.replace(/[\/\s]+/g, ' ') === upperVariation ||
-          originalCode.replace(/[\/\s]+/g, '/') === upperVariation ||
-          normalizedOriginal === normalizedVariation) {
+      if (this.checkDirectMatch(originalCode, upperVariation)) {
         return true;
       }
       
-      // Enhanced matching for cross-listed multi-number courses
-      if (originalCode.includes('/')) {
-        if (this.matchCrossListedCourse(originalCode, upperVariation)) {
-          return true;
-        }
+      // Enhanced matching for cross-listed courses
+      if (originalCode.includes('/') && this.matchCrossListedCourse(originalCode, upperVariation)) {
+        return true;
       }
       
       // Handle single courses with letter suffixes
@@ -235,6 +225,23 @@ class CourseMatchingUtils {
   }
 
   /**
+   * Check direct matches with various formatting
+   * @param {string} originalCode - Original course code
+   * @param {string} upperVariation - User input variation
+   * @returns {boolean} True if direct match found
+   * @private
+   */
+  static checkDirectMatch(originalCode, upperVariation) {
+    const normalizedOriginal = originalCode.replace(/[\/\s]+/g, '');
+    const normalizedVariation = upperVariation.replace(/[\/\s]+/g, '');
+    
+    return originalCode === upperVariation ||
+           originalCode.replace(/[\/\s]+/g, ' ') === upperVariation ||
+           originalCode.replace(/[\/\s]+/g, '/') === upperVariation ||
+           normalizedOriginal === normalizedVariation;
+  }
+
+  /**
    * Match cross-listed courses with complex patterns
    * Handles courses like "Ma/CS 6/106 abc" or "ACM/IDS 101 ab"
    * @param {string} originalCode - Original course code from catalog
@@ -243,20 +250,13 @@ class CourseMatchingUtils {
    * @private
    */
   static matchCrossListedCourse(originalCode, inputVariation) {
-    // Try to match complex cross-listed courses like "Ma/CS 6/106 abc"
+    // Try complex cross-listed courses first (e.g., "Ma/CS 6/106 abc")
     const complexMatch = originalCode.match(/^([A-Z]+(?:\/[A-Z]+)*)\s+(\d+)\/(\d+)\s*([A-Z]*)$/);
     if (complexMatch) {
       const [, coursePrefixes, firstNumber, secondNumber, courseLetters] = complexMatch;
       
-      const inputMatch = inputVariation.match(/^([A-Z]+(?:\/[A-Z]+)*)\s*(\d+(?:\/\d+)?)\s*([A-Z]*)$/);
-      if (inputMatch) {
-        const [, inputPrefixes, inputNumbers, inputLetters] = inputMatch;
-        
-        if (this.checkPrefixCompatibility(coursePrefixes, inputPrefixes) &&
-            this.checkNumberCompatibility(inputNumbers, firstNumber, secondNumber) &&
-            this.checkLetterCompatibility(inputLetters, courseLetters)) {
-          return true;
-        }
+      if (this.matchComplexCrossListed(inputVariation, coursePrefixes, firstNumber, secondNumber, courseLetters)) {
+        return true;
       }
     }
     
@@ -265,33 +265,75 @@ class CourseMatchingUtils {
     if (simpleMatch) {
       const [, coursePrefixes, courseNumber, courseLetters] = simpleMatch;
       
-      const inputMatch = inputVariation.match(/^([A-Z]+(?:\/[A-Z]+)*)\s*(\d+)\s*([A-Z]*)$/);
-      if (inputMatch) {
-        const [, inputPrefixes, inputNumber, inputLetters] = inputMatch;
-        
-        if (this.checkPrefixCompatibility(coursePrefixes, inputPrefixes) &&
-            inputNumber === courseNumber &&
-            this.checkLetterCompatibility(inputLetters, courseLetters)) {
-          return true;
-        }
-      }
-    }
-    
-    // Fallback for other slash-containing formats
-    const parts = originalCode.split('/');
-    for (const part of parts) {
-      const trimmedPart = part.trim();
-      const normalizedPart = trimmedPart.replace(/[\/\s]+/g, '');
-      const normalizedInput = inputVariation.replace(/[\/\s]+/g, '');
-      
-      if (trimmedPart === inputVariation ||
-          normalizedPart === normalizedInput ||
-          trimmedPart.replace(/\s+/g, '') === inputVariation.replace(/\s+/g, '')) {
+      if (this.matchSimpleCrossListed(inputVariation, coursePrefixes, courseNumber, courseLetters)) {
         return true;
       }
     }
     
-    return false;
+    // Fallback for other slash-containing formats
+    return this.matchCrossListedFallback(originalCode, inputVariation);
+  }
+
+  /**
+   * Match complex cross-listed courses with multiple numbers
+   * @param {string} inputVariation - User input
+   * @param {string} coursePrefixes - Course prefixes
+   * @param {string} firstNumber - First course number
+   * @param {string} secondNumber - Second course number
+   * @param {string} courseLetters - Course letters
+   * @returns {boolean} True if match found
+   * @private
+   */
+  static matchComplexCrossListed(inputVariation, coursePrefixes, firstNumber, secondNumber, courseLetters) {
+    const inputMatch = inputVariation.match(/^([A-Z]+(?:\/[A-Z]+)*)\s*(\d+(?:\/\d+)?)\s*([A-Z]*)$/);
+    if (!inputMatch) return false;
+    
+    const [, inputPrefixes, inputNumbers, inputLetters] = inputMatch;
+    
+    return this.checkPrefixCompatibility(coursePrefixes, inputPrefixes) &&
+           this.checkNumberCompatibility(inputNumbers, firstNumber, secondNumber) &&
+           this.checkLetterCompatibility(inputLetters, courseLetters);
+  }
+
+  /**
+   * Match simple cross-listed courses with single number
+   * @param {string} inputVariation - User input
+   * @param {string} coursePrefixes - Course prefixes
+   * @param {string} courseNumber - Course number
+   * @param {string} courseLetters - Course letters
+   * @returns {boolean} True if match found
+   * @private
+   */
+  static matchSimpleCrossListed(inputVariation, coursePrefixes, courseNumber, courseLetters) {
+    const inputMatch = inputVariation.match(/^([A-Z]+(?:\/[A-Z]+)*)\s*(\d+)\s*([A-Z]*)$/);
+    if (!inputMatch) return false;
+    
+    const [, inputPrefixes, inputNumber, inputLetters] = inputMatch;
+    
+    return this.checkPrefixCompatibility(coursePrefixes, inputPrefixes) &&
+           inputNumber === courseNumber &&
+           this.checkLetterCompatibility(inputLetters, courseLetters);
+  }
+
+  /**
+   * Fallback matching for cross-listed courses
+   * @param {string} originalCode - Original course code
+   * @param {string} inputVariation - User input
+   * @returns {boolean} True if match found
+   * @private
+   */
+  static matchCrossListedFallback(originalCode, inputVariation) {
+    const parts = originalCode.split('/');
+    const normalizedInput = inputVariation.replace(/[\/\s]+/g, '');
+    
+    return parts.some(part => {
+      const trimmedPart = part.trim();
+      const normalizedPart = trimmedPart.replace(/[\/\s]+/g, '');
+      
+      return trimmedPart === inputVariation ||
+             normalizedPart === normalizedInput ||
+             trimmedPart.replace(/\s+/g, '') === inputVariation.replace(/\s+/g, '');
+    });
   }
 
   /**
@@ -596,27 +638,30 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     sendResponse({ success: false, error: 'Invalid message format' });
     return false;
   }
-  switch (message.type) {
-    case 'GET_CATALOG_DATA':
-      handleGetCatalogData(sendResponse);
-      return true; // Async response
-      
-    case 'FIND_COURSE':
-      handleFindCourse(message, sendResponse);
-      return true; // Async response
-      
-    case 'GET_STATS':
-      handleGetStats(sendResponse);
-      return false; // Sync response
-      
-    case 'CLEAR_CACHE':
-      handleClearCache(sendResponse);
-      return false; // Sync response
-      
-    default:
-      console.warn('⚠️ Unknown message type:', message.type);
-      sendResponse({ success: false, error: 'Unknown message type' });
+
+  // Message handler map for cleaner code organization
+  const messageHandlers = {
+    'GET_CATALOG_DATA': () => handleGetCatalogData(sendResponse),
+    'FIND_COURSE': () => handleFindCourse(message, sendResponse),
+    'GET_STATS': () => handleGetStats(sendResponse),
+    'CLEAR_CACHE': () => handleClearCache(sendResponse)
+  };
+
+  const handler = messageHandlers[message.type];
+  if (handler) {
+    try {
+      const result = handler();
+      // Return true for async handlers (GET_CATALOG_DATA, FIND_COURSE)
+      return ['GET_CATALOG_DATA', 'FIND_COURSE'].includes(message.type);
+    } catch (error) {
+      console.error(`❌ Error handling message type ${message.type}:`, error);
+      sendResponse({ success: false, error: error.message });
       return false;
+    }
+  } else {
+    console.warn('⚠️ Unknown message type:', message.type);
+    sendResponse({ success: false, error: 'Unknown message type' });
+    return false;
   }
 });
 
@@ -630,6 +675,7 @@ async function handleGetCatalogData(sendResponse) {
     sendResponse({ success: true, data });
   } catch (error) {
     console.error('❌ Error loading catalog data:', error);
+    stats.errors++;
     sendResponse({ success: false, error: error.message });
   }
 }
@@ -668,17 +714,22 @@ async function handleFindCourse(message, sendResponse) {
  * @param {Function} sendResponse - Response callback
  */
 function handleGetStats(sendResponse) {
-  const uptime = Date.now() - stats.startTime;
-  const cacheStats = cacheManager.getStats();
-  
-  sendResponse({
-    success: true,
-    stats: {
-      ...stats,
-      uptime,
-      cache: cacheStats
-    }
-  });
+  try {
+    const uptime = Date.now() - stats.startTime;
+    const cacheStats = cacheManager.getStats();
+    
+    sendResponse({
+      success: true,
+      stats: {
+        ...stats,
+        uptime,
+        cache: cacheStats
+      }
+    });
+  } catch (error) {
+    console.error('❌ Error getting stats:', error);
+    sendResponse({ success: false, error: error.message });
+  }
 }
 
 /**

@@ -18,7 +18,7 @@
  * 
  * @fileoverview Content script for the Caltech Course Code Tooltip Extension
  * @author Varun Rodrigues <vrodrigu@caltech.edu>
- * @version 1.0.0
+ * @version 1.1.0
  * @since 1.0.0
  * @copyright 2025 Varun Rodrigues
  * @license MIT
@@ -41,7 +41,81 @@ class CaltechCourseTooltip {
      * @type {Object}
      * @private
      */
-    this.config = window.CaltechExtensionConfig || {
+    this.config = this.getConfigWithFallback();
+    
+    /**
+     * Course catalog data cache
+     * @type {Array<Object>}
+     * @private
+     */
+    this.courses = [];
+    
+    /**
+     * Tooltip DOM element
+     * @type {HTMLElement|null}
+     * @private
+     */
+    this.tooltip = null;
+    
+    /**
+     * Timer management
+     * @type {Object}
+     * @private
+     */
+    this.timers = {
+      hover: null,
+      hide: null,
+      searchDebounce: null
+    };
+    
+    /**
+     * Set of processed DOM nodes to prevent duplicate processing
+     * @type {WeakSet<Node>}
+     * @private
+     */
+    this.processedNodes = new WeakSet();
+    
+    /**
+     * Current user settings
+     * @type {Object}
+     * @private
+     */
+    this.settings = { ...this.config.DEFAULT_SETTINGS };
+    
+    /**
+     * Mutation observer for dynamic content
+     * @type {MutationObserver|null}
+     * @private
+     */
+    this.mutationObserver = null;
+    
+    // Tooltip state management properties
+    this.tooltipState = {
+      pinnedElement: null,
+      currentHoveredElement: null,
+      isPinned: false
+    };
+    
+    // Section cycling state management
+    this.sectionCycleState = new Map();
+    
+    // Performance tracking
+    this.performanceMetrics = this.initializePerformanceMetrics();
+    
+    // Initialize the extension asynchronously
+    this.init().catch(error => {
+      console.error('🚨 Extension initialization failed:', error);
+      this.performanceMetrics.errors++;
+    });
+  }
+
+  /**
+   * Get configuration with robust fallback
+   * @returns {Object} Configuration object
+   * @private
+   */
+  getConfigWithFallback() {
+    return window.CaltechExtensionConfig || {
       DEFAULT_SETTINGS: {
         extensionEnabled: true,
         showName: true,
@@ -51,7 +125,12 @@ class CaltechCourseTooltip {
         showDescription: false,
         showInstructors: true
       },
-      COURSE_CODE_PATTERN: /\b([A-Za-z][a-zA-Z]{1,4}(?:\/[A-Za-z][a-zA-Z]{1,4})*)\s*(\d{1,3}(?:\/\d{1,3})*)\s*([a-z]{0,3})(?=\s|$|[.,;!?()\[\]{}])/gi,
+      COURSE_CODE_PATTERN: /\b([A-Za-z][a-zA-Z]{1,4}(?:\/[A-Za-z][a-zA-Z]{1,4})*(?:\/[A-Za-z][a-zA-Z]{1,4})*)\s+(\d{1,3}(?:\/\d{1,3})*)(?:\s+([abc]{1,3}))?(?=\s*[.,;:!?()\[\]{}'""]|$|\s*\n|\s+(?:and|or)\b|\s)/gi,
+      EDGE_CASE_PATTERNS: {
+        D_VARIANTS: /\b((?:Bi)\s+250|(?:Ge)\s+11|(?:Ge)\s+169|(?:Ma)\s+1)(?:\s+([abcd]{1,4}))?(?=\s*[.,;:!?()\[\]{}'""]|$|\s*\n|\s+(?:and|or)\b|\s)/gi,
+        X_VARIANTS: /\b((?:Bi)\s+1|(?:Ch)\s+3|(?:CS)\s+1)(?:\s+([abcx]{1,4}))?(?=\s*[.,;:!?()\[\]{}'""]|$|\s*\n|\s+(?:and|or)\b|\s)/gi,
+        BI_1_SPECIAL: /\b((?:Bi)\s+1)(?:\s+([abcegimx]{1,4}))?(?=\s*[.,;:!?()\[\]{}'""]|$|\s*\n|\s+(?:and|or)\b|\s)/gi
+      },
       TOOLTIP_CONFIG: {
         HOVER_DELAY: 300,
         HIDE_DELAY: 100,
@@ -60,93 +139,21 @@ class CaltechCourseTooltip {
         FADE_DURATION: 200
       }
     };
-    /**
-     * Course catalog data cache
-     * @type {Array<Object>}
-     * @private
-     */
-    this.courses = [];
-    /**
-     * Tooltip DOM element
-     * @type {HTMLElement|null}
-     * @private
-     */
-    this.tooltip = null;
-    /**
-     * Hover delay timer
-     * @type {number|null}
-     * @private
-     */
-    this.hoverTimeout = null;
-    /**
-     * Hide delay timer
-     * @type {number|null}
-     * @private
-     */
-    this.hideTimeout = null;
-    /**
-     * Set of processed DOM nodes to prevent duplicate processing
-     * @type {WeakSet<Node>}
-     * @private
-     */
-    this.processedNodes = new WeakSet();
-    /**
-     * Current user settings
-     * @type {Object}
-     * @private
-     */
-    this.settings = { ...this.config.DEFAULT_SETTINGS };
-    /**
-     * Mutation observer for dynamic content
-     * @type {MutationObserver|null}
-     * @private
-     */
-    this.mutationObserver = null;
-    // Tooltip state management properties
-    /**
-     * Currently pinned element (clicked to keep tooltip visible)
-     * @type {HTMLElement|null}
-     * @private
-     */
-    this.pinnedElement = null;
-    /**
-     * Currently hovered element
-     * @type {HTMLElement|null}
-     * @private
-     */
-    this.currentHoveredElement = null;
-    /**
-     * Whether a tooltip is currently pinned
-     * @type {boolean}
-     * @private
-     */
-    this.isPinned = false;
-    // Section cycling state management
-    /**
-     * Map for tracking section cycling state per element
-     * Maps element -> {sections: Array, currentIndex: number}
-     * @type {Map<HTMLElement, Object>}
-     * @private
-     */
-    this.sectionCycleState = new Map();
-    // Performance tracking
-    /**
-     * Performance metrics for monitoring
-     * @type {Object}
-     * @private
-     */
-    this.performanceMetrics = {
+  }
+
+  /**
+   * Initialize performance metrics
+   * @returns {Object} Performance metrics object
+   * @private
+   */
+  initializePerformanceMetrics() {
+    return {
       processedNodes: 0,
       tooltipsShown: 0,
       coursesMatched: 0,
       errors: 0,
       startTime: Date.now()
     };
-    // Initialize the extension asynchronously
-    this.init().catch(error => {
-      console.error('🚨 Extension initialization failed:', error);
-      this.performanceMetrics.errors++;
-    });
   }
   /**
    * Initialize the extension with error handling and performance monitoring
@@ -157,42 +164,71 @@ class CaltechCourseTooltip {
    */
   async init() {
     try {
-      // Validate Chrome extension environment
-      if (!this.validateEnvironment()) {
+      // Validate environment and prevent duplicate initialization
+      if (!this.validateEnvironment() || this.checkExistingInitialization()) {
         return;
       }
-      // Prevent multiple initializations on the same page
-      if (this.checkExistingInitialization()) {
-        return;
-      }
+
       // Mark as initialized to prevent duplicate instances
       window.caltechExtensionInitialized = true;
+
       // Load extension data and settings in parallel for better performance
-      const initPromises = [
+      await Promise.all([
         this.loadSettings(),
         this.loadCourseData()
-      ];
-      await Promise.all(initPromises);
+      ]);
+
       // Validate course data availability
       if (this.courses.length === 0) {
+        console.warn('⚠️ No course data available, extension will not function');
         return;
       }
+
       // Set up UI and event handling
-      this.createTooltipElement();
-      this.setupGlobalClickListener();
+      this.setupExtensionUI();
+      this.setupEventListeners();
       this.setupMessageListener();
+
       // Begin content processing if extension is enabled
       if (this.settings.extensionEnabled) {
-        await this.processExistingContent();
-        this.setupMutationObserver();
+        await this.startContentProcessing();
       }
+
       // Log successful initialization
       this.performanceMetrics.initTime = Date.now() - this.performanceMetrics.startTime;
+      console.log('✅ Extension initialized successfully');
+      
     } catch (error) {
       console.error('💥 Initialization failed:', error);
       this.performanceMetrics.errors++;
       throw new Error(`Extension initialization failed: ${error.message}`);
     }
+  }
+
+  /**
+   * Set up extension UI components
+   * @private
+   */
+  setupExtensionUI() {
+    this.createTooltipElement();
+  }
+
+  /**
+   * Set up all event listeners
+   * @private
+   */
+  setupEventListeners() {
+    this.setupGlobalClickListener();
+  }
+
+  /**
+   * Start content processing
+   * @async
+   * @private
+   */
+  async startContentProcessing() {
+    await this.processExistingContent();
+    this.setupMutationObserver();
   }
   /**
    * Validate that the extension is running in a proper Chrome extension environment
@@ -587,22 +623,26 @@ class CaltechCourseTooltip {
   handleGlobalClick(e) {
     try {
       // Check if the clicked element is a course highlight
-      if (e.target.classList && e.target.classList.contains('caltech-course-highlight')) {
+      if (e.target.classList?.contains('caltech-course-highlight')) {
         // This will be handled by the individual element's click listener
         return;
       }
+
       // Check if the clicked element is inside a pinned tooltip
-      if (this.tooltip && this.tooltip.contains(e.target) && this.isPinned) {
+      if (this.tooltip?.contains(e.target) && this.tooltipState.isPinned) {
         // Don't unpin if clicking inside a pinned tooltip
         return;
       }
+
       // Clicked outside - unpin any pinned tooltip
-      if (this.isPinned) {
+      if (this.tooltipState.isPinned) {
         this.unpinTooltip();
       }
     } catch (error) {
+      console.error('❌ Error handling global click:', error);
     }
   }
+
   /**
    * Handle global keyboard events for accessibility
    * @param {KeyboardEvent} e - Keyboard event
@@ -611,21 +651,59 @@ class CaltechCourseTooltip {
   handleGlobalKeyDown(e) {
     try {
       // ESC key unpins tooltip
-      if (e.key === 'Escape' && this.isPinned) {
+      if (e.key === 'Escape' && this.tooltipState.isPinned) {
         e.preventDefault();
         this.unpinTooltip();
         return;
       }
+
       // Space or Enter on focused course highlight
       if ((e.key === ' ' || e.key === 'Enter') && 
-          e.target.classList && 
-          e.target.classList.contains('caltech-course-highlight')) {
+          e.target.classList?.contains('caltech-course-highlight')) {
         e.preventDefault();
         e.target.click(); // Trigger the click handler
         return;
       }
     } catch (error) {
+      console.error('❌ Error handling global keydown:', error);
     }
+  }
+
+  /**
+   * Clear a specific timer
+   * @param {string} timerName - Name of the timer to clear
+   * @private
+   */
+  clearTimer(timerName) {
+    if (this.timers[timerName]) {
+      clearTimeout(this.timers[timerName]);
+      this.timers[timerName] = null;
+    }
+  }
+
+  /**
+   * Set a timer with automatic cleanup
+   * @param {string} timerName - Name of the timer
+   * @param {Function} callback - Function to execute
+   * @param {number} delay - Delay in milliseconds
+   * @private
+   */
+  setTimer(timerName, callback, delay) {
+    this.clearTimer(timerName);
+    this.timers[timerName] = setTimeout(() => {
+      callback();
+      this.timers[timerName] = null;
+    }, delay);
+  }
+
+  /**
+   * Clear all timers
+   * @private
+   */
+  clearAllTimers() {
+    Object.keys(this.timers).forEach(timerName => {
+      this.clearTimer(timerName);
+    });
   }
   /**
    * Process all existing content on the page for course codes
@@ -738,80 +816,135 @@ class CaltechCourseTooltip {
     }
     this.processedNodes.add(element);
   }
+  /**
+   * Set up mutation observer for dynamic content
+   * @private
+   */
   setupMutationObserver() {
     if (!this.settings.extensionEnabled) return;
+
     // Clean up existing observer
     if (this.mutationObserver) {
       this.mutationObserver.disconnect();
+      this.mutationObserver = null;
     }
+
     this.mutationObserver = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        mutation.addedNodes.forEach(async (node) => {
-          if (node.nodeType === Node.ELEMENT_NODE || node.nodeType === Node.TEXT_NODE) {
-            await this.processNode(node);
-          }
-        });
-      });
+      this.handleMutations(mutations);
     });
+
     this.mutationObserver.observe(document.body, {
       childList: true,
       subtree: true,
       characterData: true
     });
   }
+
+  /**
+   * Handle DOM mutations efficiently
+   * @param {MutationRecord[]} mutations - Array of mutation records
+   * @private
+   */
+  async handleMutations(mutations) {
+    const nodesToProcess = new Set();
+    
+    for (const mutation of mutations) {
+      for (const node of mutation.addedNodes) {
+        if (node.nodeType === Node.ELEMENT_NODE || node.nodeType === Node.TEXT_NODE) {
+          nodesToProcess.add(node);
+        }
+      }
+    }
+
+    // Process nodes in batch to improve performance
+    for (const node of nodesToProcess) {
+      await this.processNode(node);
+    }
+  }
+
+  /**
+   * Process a single DOM node
+   * @param {Node} node - Node to process
+   * @async
+   * @private
+   */
   async processNode(node) {
-    if (!this.settings.extensionEnabled) return;
-    if (this.processedNodes.has(node)) {
+    if (!this.settings.extensionEnabled || this.processedNodes.has(node)) {
       return;
     }
-    if (node.nodeType === Node.TEXT_NODE) {
-      await this.processTextNode(node);
-    } else if (node.nodeType === Node.ELEMENT_NODE) {
-      // Skip processing certain elements
-      if (this.shouldSkipElement(node)) {
-        return;
+
+    try {
+      if (node.nodeType === Node.TEXT_NODE) {
+        await this.processTextNode(node);
+      } else if (node.nodeType === Node.ELEMENT_NODE && !this.shouldSkipElement(node)) {
+        await this.processElementNode(node);
       }
-      // Process all text nodes within this element
-      const walker = document.createTreeWalker(
-        node,
-        NodeFilter.SHOW_TEXT,
-        {
-          acceptNode: (textNode) => {
-            // Skip if parent is already processed or should be skipped
-            if (this.shouldSkipElement(textNode.parentElement)) {
-              return NodeFilter.FILTER_REJECT;
-            }
-            return NodeFilter.FILTER_ACCEPT;
-          }
-        }
-      );
-      let textNode;
-      let textNodeCount = 0;
-      while (textNode = walker.nextNode()) {
-        textNodeCount++;
-        await this.processTextNode(textNode);
-      }
+      
+      this.processedNodes.add(node);
+    } catch (error) {
+      console.error('❌ Error processing node:', error);
+      this.performanceMetrics.errors++;
     }
-    this.processedNodes.add(node);
   }
+
+  /**
+   * Process an element node and its text children
+   * @param {Element} element - Element to process
+   * @async
+   * @private
+   */
+  async processElementNode(element) {
+    const walker = document.createTreeWalker(
+      element,
+      NodeFilter.SHOW_TEXT,
+      {
+        acceptNode: (textNode) => {
+          return this.shouldSkipElement(textNode.parentElement) 
+            ? NodeFilter.FILTER_REJECT 
+            : NodeFilter.FILTER_ACCEPT;
+        }
+      }
+    );
+
+    const textNodes = [];
+    let textNode;
+    while (textNode = walker.nextNode()) {
+      textNodes.push(textNode);
+    }
+
+    // Process text nodes in batch
+    for (const node of textNodes) {
+      await this.processTextNode(node);
+    }
+  }
+  /**
+   * Determine if an element should be skipped during processing
+   * @param {Element} element - Element to check
+   * @returns {boolean} True if element should be skipped
+   * @private
+   */
   shouldSkipElement(element) {
     if (!element) return true;
-    const skipTags = ['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEXTAREA', 'INPUT', 'SELECT'];
-    const skipClasses = ['caltech-tooltip', 'caltech-course-highlight'];
+
+    const SKIP_TAGS = ['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEXTAREA', 'INPUT', 'SELECT'];
+    const SKIP_CLASSES = ['caltech-tooltip', 'caltech-course-highlight'];
+
     // Check if element itself should be skipped
-    if (skipTags.includes(element.tagName) ||
-        skipClasses.some(cls => element.classList.contains(cls)) ||
+    if (SKIP_TAGS.includes(element.tagName) ||
+        SKIP_CLASSES.some(cls => element.classList.contains(cls)) ||
         element.isContentEditable) {
       return true;
     }
+
     // Check if element is inside a tooltip by walking up the DOM tree
     let parent = element.parentElement;
     while (parent) {
-      if (skipClasses.some(cls => parent.classList.contains(cls))) {
+      if (SKIP_CLASSES.some(cls => parent.classList.contains(cls))) {
         return true;
       }
       parent = parent.parentElement;
     }
+
     return false;
   }
   // Detect course codes in text using the shared pattern
@@ -827,23 +960,76 @@ class CaltechCourseTooltip {
     if (shorthandMatches.length > 0) {
       matches.push(...shorthandMatches);
     }
+    // Detect no-space formats like "CS156ab"
+    const noSpaceMatches = await this.detectNoSpaceCourses(text);
+    if (noSpaceMatches.length > 0) {
+      // Process no-space matches and expand any compounds
+      for (const noSpaceMatch of noSpaceMatches) {
+        if (noSpaceMatch.isCompound && noSpaceMatch.numbers.includes('/')) {
+          // This is a compound no-space match, expand it using existing logic
+          const mockMatch = [
+            noSpaceMatch.fullMatch,  // [0] - full match
+            noSpaceMatch.prefixes,   // [1] - prefixes
+            noSpaceMatch.numbers,    // [2] - numbers
+            noSpaceMatch.letters     // [3] - letters
+          ];
+          mockMatch.index = noSpaceMatch.index;
+          try {
+            const expandedMatches = await this.expandCompoundCourseCode(mockMatch, noSpaceMatch.prefixes, noSpaceMatch.numbers, noSpaceMatch.letters);
+            matches.push(...expandedMatches);
+          } catch (error) {
+            console.error('❌ Error expanding compound:', error);
+            // Fall back to adding the original match
+            matches.push(noSpaceMatch);
+          }
+        } else {
+          // Regular no-space match, add as-is
+          matches.push(noSpaceMatch);
+        }
+      }
+    }
+
+    // Detect edge case courses with special letter patterns
+    const edgeCaseMatches = this.detectEdgeCaseCourses(text);
+    if (edgeCaseMatches.length > 0) {
+      matches.push(...edgeCaseMatches);
+    }
+
+    // Main pattern detection (standard a, b, c combinations)
     const pattern = new RegExp(this.config.COURSE_CODE_PATTERN.source, 'gi');
     let match;
     while ((match = pattern.exec(text)) !== null) {
       const [fullMatch, prefixes, numbers, letters = ''] = match;
-      // Skip if this match overlaps with any shorthand matches we already found
+      // Skip if this match overlaps with any existing matches we already found
       const matchStart = match.index;
       const matchEnd = match.index + fullMatch.length;
-      const overlapsShorthand = shorthandMatches.some(shorthand => {
-        return (matchStart < shorthand.index + shorthand.length && matchEnd > shorthand.index);
+      const overlapsExisting = [...rangeMatches, ...shorthandMatches, ...noSpaceMatches, ...edgeCaseMatches].some(existing => {
+        return (matchStart < existing.index + existing.length && matchEnd > existing.index);
       });
-      if (overlapsShorthand) {
+      if (overlapsExisting) {
         continue;
       }
       // Check if this is a compound course code (e.g., "APh/EE 23/24")
+      // But first check if the full course exists as-is (e.g., "Ma 5/105 abc")
       if (numbers.includes('/')) {
-        const expandedMatches = await this.expandCompoundCourseCode(match, prefixes, numbers, letters);
-        matches.push(...expandedMatches);
+        const fullCourseCode = `${prefixes} ${numbers}${letters ? ' ' + letters : ''}`.trim();
+        const fullCourseMatch = await this.findCourseMatch(fullCourseCode);
+        
+        if (fullCourseMatch) {
+          // Course exists as a single entity, don't treat as compound
+          matches.push({
+            fullMatch: fullMatch.trim(),
+            index: match.index,
+            length: fullMatch.length,
+            prefixes,
+            numbers,
+            letters
+          });
+        } else {
+          // Course doesn't exist as single entity, try to expand as compound
+          const expandedMatches = await this.expandCompoundCourseCode(match, prefixes, numbers, letters);
+          matches.push(...expandedMatches);
+        }
       } else {
         matches.push({
           fullMatch: fullMatch.trim(),
@@ -857,29 +1043,257 @@ class CaltechCourseTooltip {
     }
     return matches;
   }
+  // Detect no-space course formats like "CS156ab"
+  async detectNoSpaceCourses(text) {
+    const matches = [];
+    
+    // Standard pattern: Department + number + letters (only a, b, c combinations) with no spaces
+    // But not if it's the first part of a compound course (followed by letters and /)
+    const noSpacePattern = /\b([A-Za-z][a-zA-Z]{1,4})(\d{1,3})([abc]{0,3})(?![a-zA-Z]*\/)/gi;
+    let match;
+    while ((match = noSpacePattern.exec(text)) !== null) {
+      const [fullMatch, department, number, letters] = match;
+      // Only process if this looks like a valid course code (avoid false positives)
+      // Check if the department part is likely a course department (2-4 characters)
+      if (department.length >= 2 && department.length <= 4) {
+        matches.push({
+          fullMatch: fullMatch,
+          index: match.index,
+          length: fullMatch.length,
+          prefixes: department,
+          numbers: number,
+          letters: letters,
+          isNoSpace: true,
+          normalizedCourseCode: `${department} ${number}${letters ? ' ' + letters : ''}`
+        });
+      }
+    }
+
+    // Handle no-space compound courses like "Ma1a/5c", "CS156a/174b"
+    const noSpaceCompoundPattern = /\b([A-Za-z][a-zA-Z]{1,4})(\d{1,3})([abc]{0,3})\/(\d{1,3})([abc]{0,3})\b/gi;
+    let compoundMatch;
+    while ((compoundMatch = noSpaceCompoundPattern.exec(text)) !== null) {
+      const [fullMatch, department, num1, letters1, num2, letters2] = compoundMatch;
+      
+      // Check if the department part is likely a course department (2-4 characters)
+      if (department.length >= 2 && department.length <= 4) {
+        // First, check if this exists as a single course (like "Ma 5/105 abc")
+        const fullCourseCode = `${department} ${num1}${letters1}/${num2}${letters2}`.trim();
+        const singleCourseMatch = await this.findCourseMatch(fullCourseCode);
+        
+        if (singleCourseMatch) {
+          // It's a single course, not a compound
+          matches.push({
+            fullMatch: fullMatch,
+            index: compoundMatch.index,
+            length: fullMatch.length,
+            prefixes: department,
+            numbers: `${num1}${letters1}/${num2}${letters2}`,
+            letters: '',
+            isNoSpace: true,
+            normalizedCourseCode: fullCourseCode
+          });
+        } else {
+          // It's a true compound course, treat it as a single match with compound numbers
+          // This will be handled by the existing compound expansion logic
+          matches.push({
+            fullMatch: fullMatch,
+            index: compoundMatch.index,
+            length: fullMatch.length,
+            prefixes: department,
+            numbers: `${num1}${letters1}/${num2}${letters2}`,
+            letters: '',
+            isNoSpace: true,
+            isCompound: true,
+            normalizedCourseCode: `${department} ${num1}${letters1}/${num2}${letters2}`
+          });
+        }
+      }
+    }
+
+    // Handle edge cases for no-space format
+    // Bi 1 with special letters (but not if first part of compound course)
+    const bi1NoSpacePattern = /\b(Bi)(1)([abcegimx]{0,4})(?![abcegimx]*\/)/gi;
+    let bi1Match;
+    while ((bi1Match = bi1NoSpacePattern.exec(text)) !== null) {
+      const [fullMatch, department, number, letters] = bi1Match;
+      matches.push({
+        fullMatch: fullMatch,
+        index: bi1Match.index,
+        length: fullMatch.length,
+        prefixes: department,
+        numbers: number,
+        letters: letters,
+        isNoSpace: true,
+        isEdgeCase: true,
+        edgeCaseType: 'BI_1_SPECIAL',
+        normalizedCourseCode: `${department} ${number}${letters ? ' ' + letters : ''}`
+      });
+    }
+
+    // Courses with 'd' variants (Bi 250, Ge 11, Ge 169, Ma 1) - but not if first part of compound course
+    const dNoSpacePattern = /\b((?:Bi)(250)|(?:Ge)(11)|(?:Ge)(169)|(?:Ma)(1))([abcd]{0,4})(?![abcd]*\/)/gi;
+    let dMatch;
+    while ((dMatch = dNoSpacePattern.exec(text)) !== null) {
+      const [fullMatch, , bi250, ge11, ge169, ma1, letters] = dMatch;
+      const department = fullMatch.match(/^[A-Za-z]+/)[0];
+      const number = bi250 || ge11 || ge169 || ma1;
+      matches.push({
+        fullMatch: fullMatch,
+        index: dMatch.index,
+        length: fullMatch.length,
+        prefixes: department,
+        numbers: number,
+        letters: letters,
+        isNoSpace: true,
+        isEdgeCase: true,
+        edgeCaseType: 'D_VARIANTS',
+        normalizedCourseCode: `${department} ${number}${letters ? ' ' + letters : ''}`
+      });
+    }
+
+    // Courses with 'x' variants (Ch 3, CS 1) - Bi 1 is handled above - but not if first part of compound course
+    const xNoSpacePattern = /\b((?:Ch)(3)|(?:CS)(1))([abcx]{0,4})(?![abcx]*\/)/gi;
+    let xMatch;
+    while ((xMatch = xNoSpacePattern.exec(text)) !== null) {
+      const [fullMatch, , ch3, cs1, letters] = xMatch;
+      const department = fullMatch.match(/^[A-Za-z]+/)[0];
+      const number = ch3 || cs1;
+      matches.push({
+        fullMatch: fullMatch,
+        index: xMatch.index,
+        length: fullMatch.length,
+        prefixes: department,
+        numbers: number,
+        letters: letters,
+        isNoSpace: true,
+        isEdgeCase: true,
+        edgeCaseType: 'X_VARIANTS',
+        normalizedCourseCode: `${department} ${number}${letters ? ' ' + letters : ''}`
+      });
+    }
+
+    return matches;
+  }
+
+  // Detect edge case courses with special letter patterns (d, x, and Bi 1 special letters)
+  detectEdgeCaseCourses(text) {
+    const matches = [];
+    
+    // Handle Bi 1 with special letters (e, g, i, m, x in addition to a, b, c)
+    if (this.config.EDGE_CASE_PATTERNS && this.config.EDGE_CASE_PATTERNS.BI_1_SPECIAL) {
+      const bi1Pattern = new RegExp(this.config.EDGE_CASE_PATTERNS.BI_1_SPECIAL.source, 'gi');
+      let match;
+      while ((match = bi1Pattern.exec(text)) !== null) {
+        const [fullMatch, courseBase, letters = ''] = match;
+        matches.push({
+          fullMatch: fullMatch.trim(),
+          index: match.index,
+          length: fullMatch.length,
+          prefixes: 'Bi',
+          numbers: '1',
+          letters: letters,
+          isEdgeCase: true,
+          edgeCaseType: 'BI_1_SPECIAL'
+        });
+      }
+    }
+
+    // Handle courses with 'd' variants (Bi 250, Ge 11, Ge 169, Ma 1)
+    if (this.config.EDGE_CASE_PATTERNS && this.config.EDGE_CASE_PATTERNS.D_VARIANTS) {
+      const dPattern = new RegExp(this.config.EDGE_CASE_PATTERNS.D_VARIANTS.source, 'gi');
+      let match;
+      while ((match = dPattern.exec(text)) !== null) {
+        const [fullMatch, courseBase, letters = ''] = match;
+        // Parse the course base to extract prefixes and numbers
+        const courseMatch = courseBase.match(/([A-Za-z]+)\s+(\d+)/);
+        if (courseMatch) {
+          const [, prefix, number] = courseMatch;
+          matches.push({
+            fullMatch: fullMatch.trim(),
+            index: match.index,
+            length: fullMatch.length,
+            prefixes: prefix,
+            numbers: number,
+            letters: letters,
+            isEdgeCase: true,
+            edgeCaseType: 'D_VARIANTS'
+          });
+        }
+      }
+    }
+
+    // Handle courses with 'x' variants (Bi 1, Ch 3, CS 1) - but exclude Bi 1 since it's handled above
+    if (this.config.EDGE_CASE_PATTERNS && this.config.EDGE_CASE_PATTERNS.X_VARIANTS) {
+      const xPattern = new RegExp(this.config.EDGE_CASE_PATTERNS.X_VARIANTS.source, 'gi');
+      let match;
+      while ((match = xPattern.exec(text)) !== null) {
+        const [fullMatch, courseBase, letters = ''] = match;
+        // Parse the course base to extract prefixes and numbers
+        const courseMatch = courseBase.match(/([A-Za-z]+)\s+(\d+)/);
+        if (courseMatch) {
+          const [, prefix, number] = courseMatch;
+          // Skip Bi 1 since it's handled by the special case above
+          if (prefix === 'Bi' && number === '1') {
+            continue;
+          }
+          matches.push({
+            fullMatch: fullMatch.trim(),
+            index: match.index,
+            length: fullMatch.length,
+            prefixes: prefix,
+            numbers: number,
+            letters: letters,
+            isEdgeCase: true,
+            edgeCaseType: 'X_VARIANTS'
+          });
+        }
+      }
+    }
+
+    return matches;
+  }
+
   // Detect shorthand course notation like "Ge/Ay 132, 133, 137" or "APh/EE 130, 131, and 132"
   detectShorthandCourses(text) {
     const matches = [];
     // Pattern to match: Department(s) + first number + comma/and-separated additional numbers
     // e.g., "Ge/Ay 132, 133, 137" or "CS 15, 16, 17" or "APh/EE 23, 24" or "APh/EE 130, 131, and 132"
-    const shorthandPattern = /\b([A-Za-z][a-zA-Z]{1,4}(?:\/[A-Za-z][a-zA-Z]{1,4})*)\s*(\d{1,3})([a-z]{0,3})\s*(?:,\s*(?:and\s+)?|,?\s+and\s+)(?:\d{1,3}[a-z]{0,3}\s*(?:,\s*(?:and\s+)?|,?\s+and\s+|$))+/gi;
+    // Updated to ensure proper word boundaries and handle letter filtering
+    const shorthandPattern = /\b([A-Za-z][a-zA-Z]{1,4}(?:\/[A-Za-z][a-zA-Z]{1,4})*)\s*(\d{1,3})\s*([a-zA-Z]{0,3})\s*(?:,\s*(?:and\s+)?|,?\s+and\s+)(?:\d{1,3}\s*[a-zA-Z]{0,3}\s*(?:,\s*(?:and\s+)?|,?\s+and\s+))*(\d{1,3})\s*([a-zA-Z]{0,3})(?=\s*[.,;:!?()\[\]{}'""]|$|\s*\n|\s+(?![0-9,]))/gi;
     let match;
     while ((match = shorthandPattern.exec(text)) !== null) {
-      const fullMatch = match[0];
+      let fullMatch = match[0];
       const prefixes = match[1];  // e.g., "Ge/Ay"
       const firstNumber = match[2];  // e.g., "132"
       const firstLetters = match[3] || '';  // e.g., "a" or ""
 
+      // Clean up the match to remove trailing words that shouldn't be included
+      // Look for the last course number and stop there, avoiding words like "are", "for", etc.
+      const lastValidMatch = fullMatch.match(/(.*\d{1,3}(?:\s*[abc]{0,3})?)\s+[a-zA-Z]+/);
+      if (lastValidMatch) {
+        fullMatch = lastValidMatch[1];
+      }
+
       // Extract all numbers from the pattern, but we need to carefully find their positions
-      const numberPattern = /\d{1,3}([a-z]{0,3})/g;
+      const numberPattern = /\d{1,3}\s*([a-zA-Z]{0,3})/g;
       const allNumbers = [];
       let numberMatch;
       // Reset the regex to search within the full match
       numberPattern.lastIndex = 0;
       const tempText = fullMatch;
       while ((numberMatch = numberPattern.exec(tempText)) !== null) {
+        const numberText = numberMatch[0].trim(); // e.g., "132" or "133 ab"
+        const justNumber = numberText.match(/\d+/)[0];
+        const rawLetters = numberText.replace(/\d+\s*/, '');
+        
+        // Only keep valid section letters (a, b, c combinations)
+        const validLetters = rawLetters.match(/^[abc]{1,3}$/) ? rawLetters : '';
+        
         allNumbers.push({
-          text: numberMatch[0],
+          text: numberText,
+          number: justNumber,
+          letters: validLetters,
           indexInMatch: numberMatch.index,
           absoluteIndex: match.index + numberMatch.index
         });
@@ -887,22 +1301,19 @@ class CaltechCourseTooltip {
       // Create individual course matches for each number
       for (let i = 0; i < allNumbers.length; i++) {
         const numberInfo = allNumbers[i];
-        const numberText = numberInfo.text; // e.g., "132" or "133a"
-        const justNumber = numberText.match(/\d+/)[0];
-        const letters = numberText.replace(/\d+/, '');
         let courseCode, displayText, highlightStart, highlightLength;
         if (i === 0) {
           // First number: show full course code and highlight from prefix start to number end
-          courseCode = `${prefixes} ${numberText}`;
-          displayText = `${prefixes} ${numberText}`;
+          courseCode = `${prefixes} ${numberInfo.number}${numberInfo.letters ? ' ' + numberInfo.letters : ''}`;
+          displayText = `${prefixes} ${numberInfo.text}`;
           highlightStart = match.index; // Start from the prefix
-          highlightLength = numberInfo.indexInMatch + numberText.length;
+          highlightLength = numberInfo.indexInMatch + numberInfo.text.length;
         } else {
           // Subsequent numbers: just highlight the number itself
-          courseCode = `${prefixes} ${numberText}`;
-          displayText = numberText;
+          courseCode = `${prefixes} ${numberInfo.number}${numberInfo.letters ? ' ' + numberInfo.letters : ''}`;
+          displayText = numberInfo.text;
           highlightStart = numberInfo.absoluteIndex;
-          highlightLength = numberText.length;
+          highlightLength = numberInfo.text.length;
         }
 
         matches.push({
@@ -910,8 +1321,8 @@ class CaltechCourseTooltip {
           index: highlightStart,
           length: highlightLength,
           prefixes,
-          numbers: justNumber,
-          letters,
+          numbers: numberInfo.number,
+          letters: numberInfo.letters,
           isShorthand: true,
           isFirstInShorthand: i === 0,
           shorthandDisplayText: displayText,
@@ -931,8 +1342,9 @@ class CaltechCourseTooltip {
   detectRangeCourses(text) {
     const matches = [];
     // Pattern to match: Department + start_number - end_number
-    // e.g., "EC 120-122" or "CS 15-17" or "Math 1-3"
-    const rangePattern = /\b([A-Za-z][a-zA-Z]{1,4}(?:\/[A-Za-z][a-zA-Z]{1,4})*)\s*(\d{1,3})\s*-\s*(\d{1,3})\b/gi;
+    // e.g., "EC 120-122" or "CS 15–17" or "Math 1—3"
+    // Updated to handle multiple dash types: hyphen (-), en dash (–), em dash (—), minus sign (−)
+    const rangePattern = /\b([A-Za-z][a-zA-Z]{1,4}(?:\/[A-Za-z][a-zA-Z]{1,4})*)\s*(\d{1,3})\s*[-–—−]\s*(\d{1,3})\b/gi;
     let match;
     while ((match = rangePattern.exec(text)) !== null) {
       const fullMatch = match[0];
@@ -999,96 +1411,131 @@ class CaltechCourseTooltip {
     const expandedMatches = [];
     const [fullMatch] = originalMatch;
     const baseIndex = originalMatch.index;
-    // Split the numbers (e.g., "23/24" -> ["23", "24"])
-    const numberParts = numbers.split('/');
-    if (numberParts.length <= 1) {
-      // Not actually compound, return as single match
-      return [{
-        fullMatch: fullMatch.trim(),
-        index: baseIndex,
-        length: fullMatch.length,
-        prefixes,
-        numbers,
-        letters
-      }];
+    
+    // Handle compound courses with mixed letters like "ma 1a/108c" or "ma 3/108b"
+    // First, try to parse individual number+letter combinations from the original text
+    const compoundWithLettersPattern = /(\d{1,3})([a-zA-Z]{0,3})/g;
+    const numberLetterPairs = [];
+    let numberMatch;
+    
+    // Extract all number+letter combinations from the numbers part
+    const numbersSection = numbers;
+    while ((numberMatch = compoundWithLettersPattern.exec(numbersSection)) !== null) {
+      numberLetterPairs.push({
+        number: numberMatch[1],
+        letters: numberMatch[2].match(/^[abc]{0,3}$/) ? numberMatch[2] : '' // Filter to valid letters
+      });
     }
-    // Check the catalog to determine if this should be treated as:
-    // 1. A single cross-listed course (e.g., "ACM 95/100 ab")
-    // 2. Multiple separate courses (e.g., "APh/EE 23/24")
-    // First, check if the full compound course exists as a single course
-    const fullCourseCode = `${prefixes} ${numbers}${letters}`.trim();
-    const fullCourseMatch = await this.findCourseMatch(fullCourseCode);
-    if (fullCourseMatch) {
-      // Exists as single course, don't expand
-      return [{
-        fullMatch: fullMatch.trim(),
-        index: baseIndex,
-        length: fullMatch.length,
-        prefixes,
-        numbers,
-        letters
-      }];
+    
+    // If we couldn't parse individual pairs, fall back to splitting by slash
+    if (numberLetterPairs.length === 0) {
+      const numberParts = numbers.split('/');
+      for (const numberPart of numberParts) {
+        const match = numberPart.match(/^(\d+)([a-zA-Z]*)$/);
+        if (match) {
+          numberLetterPairs.push({
+            number: match[1],
+            letters: match[2].match(/^[abc]{0,3}$/) ? match[2] : ''
+          });
+        }
+      }
     }
-    // Check if individual courses exist
+    
+    // If still no pairs found, use the original logic
+    if (numberLetterPairs.length <= 1) {
+      const numberParts = numbers.split('/');
+      if (numberParts.length <= 1) {
+        // Not actually compound, return as single match
+        return [{
+          fullMatch: fullMatch.trim(),
+          index: baseIndex,
+          length: fullMatch.length,
+          prefixes,
+          numbers,
+          letters
+        }];
+      }
+      
+      // Use original letters for all parts
+      for (const numberPart of numberParts) {
+        numberLetterPairs.push({
+          number: numberPart,
+          letters: letters || ''
+        });
+      }
+    }
+
+    // Check the catalog to determine if individual courses exist
     const individualCourses = [];
     let allIndividualExist = true;
-    for (const numberPart of numberParts) {
-      const individualCourseCode = `${prefixes} ${numberPart}${letters}`.trim();
+    
+    for (const pair of numberLetterPairs) {
+      const individualCourseCode = `${prefixes} ${pair.number}${pair.letters}`.trim();
       const individualMatch = await this.findCourseMatch(individualCourseCode);
       if (individualMatch) {
         individualCourses.push({
           courseCode: individualCourseCode,
-          numberPart: numberPart,
+          numberPart: pair.number,
+          letters: pair.letters,
           course: individualMatch
         });
       } else {
         allIndividualExist = false;
       }
     }
+    
     if (allIndividualExist && individualCourses.length > 1) {
-      // First part: "APh/EE 23" - includes the full prefix and first number
-      const firstCourse = `${prefixes} ${numberParts[0]}${letters}`;
-      // Find the end of the first number (before the slash that separates numbers)
-      const firstNumberPattern = new RegExp(`\\b${prefixes.replace(/\//g, '\\/')}\\s*${numberParts[0]}${letters}`);
-      const firstNumberMatch = fullMatch.match(firstNumberPattern);
-      let firstPartEnd;
-      if (firstNumberMatch) {
-        firstPartEnd = firstNumberMatch[0].length;
-      } else {
-        // Fallback: find position after first number + letters
-        const afterFirstNumber = fullMatch.indexOf(`${numberParts[0]}${letters}`) + `${numberParts[0]}${letters}`.length;
-        firstPartEnd = afterFirstNumber;
-      }
-     
-      expandedMatches.push({
-        fullMatch: firstCourse.trim(),
-        index: baseIndex,
-        length: firstPartEnd,
-        prefixes,
-        numbers: numberParts[0],
-        letters,
-        isExpanded: true,
-        originalMatch: fullMatch
-      });
-      // Additional parts: "/24" but representing "APh/EE 24"
-      for (let i = 1; i < numberParts.length; i++) {
-        const currentNumber = numberParts[i];
-        const courseCode = `${prefixes} ${currentNumber}${letters}`;
-        // Find the start of this number part in the original string
-        let searchPattern = `/${currentNumber}`;
-        let startPos = fullMatch.indexOf(searchPattern, fullMatch.indexOf(`/${numberParts[i-1]}`));
-        if (startPos !== -1) {
+      // Create expanded matches for each individual course
+      for (let i = 0; i < individualCourses.length; i++) {
+        const course = individualCourses[i];
+        
+        if (i === 0) {
+          // First part: full prefix and first number
+          const firstCourse = `${prefixes} ${course.numberPart}${course.letters}`;
+          const firstNumberPattern = new RegExp(`\\b${prefixes.replace(/\//g, '\\/')}\\s*${course.numberPart}${course.letters}`);
+          const firstNumberMatch = fullMatch.match(firstNumberPattern);
+          let firstPartEnd;
+          if (firstNumberMatch) {
+            firstPartEnd = firstNumberMatch[0].length;
+          } else {
+            // Fallback: find position after first number + letters
+            const afterFirstNumber = fullMatch.indexOf(`${course.numberPart}${course.letters}`) + `${course.numberPart}${course.letters}`.length;
+            firstPartEnd = afterFirstNumber;
+          }
+         
           expandedMatches.push({
-            fullMatch: courseCode.trim(),
-            index: baseIndex + startPos,
-            length: searchPattern.length + letters.length,
+            fullMatch: firstCourse.trim(),
+            index: baseIndex,
+            length: firstPartEnd,
             prefixes,
-            numbers: currentNumber,
-            letters,
+            numbers: course.numberPart,
+            letters: course.letters,
             isExpanded: true,
-            originalMatch: fullMatch,
-            displayText: `/${currentNumber}${letters}` // What actually shows in the text
+            originalMatch: fullMatch
           });
+        } else {
+          // Additional parts: "/108c" representing the full course
+          const currentNumber = course.numberPart;
+          const currentLetters = course.letters;
+          const courseCode = `${prefixes} ${currentNumber}${currentLetters}`;
+          
+          // Find the start of this number part in the original string
+          let searchPattern = `/${currentNumber}${currentLetters}`;
+          let startPos = fullMatch.indexOf(searchPattern);
+          
+          if (startPos !== -1) {
+            expandedMatches.push({
+              fullMatch: courseCode.trim(),
+              index: baseIndex + startPos,
+              length: searchPattern.length,
+              prefixes,
+              numbers: currentNumber,
+              letters: currentLetters,
+              isExpanded: true,
+              originalMatch: fullMatch,
+              displayText: `/${currentNumber}${currentLetters}` // What actually shows in the text
+            });
+          }
         }
       }
       return expandedMatches;
@@ -1152,7 +1599,13 @@ class CaltechCourseTooltip {
           });
         }
       } else {
-        const course = await this.findCourseMatch(match.fullMatch);
+        // For regular matches and no-space matches
+        let courseCodeToMatch = match.fullMatch;
+        if (match.isNoSpace && match.normalizedCourseCode) {
+          // For no-space matches like "CS156ab", try the normalized version "CS 156 ab"
+          courseCodeToMatch = match.normalizedCourseCode;
+        }
+        const course = await this.findCourseMatch(courseCodeToMatch);
         if (course !== null) {
           validMatches.push({ match, course });
         }
