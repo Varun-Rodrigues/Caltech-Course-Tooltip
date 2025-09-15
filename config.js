@@ -7,7 +7,7 @@
  * 
  * @fileoverview Global configuration for the Caltech Course Code Tooltip Extension
  * @author Varun Rodrigues <vrodrigu@caltech.edu>
- * @version 1.0.0
+ * @version 1.1.0
  * @since 1.0.0
  * @copyright 2025 Varun Rodrigues
  * @license MIT
@@ -43,7 +43,7 @@
       showTerms: true,             // Term offered display
       showPrerequisites: true,     // Prerequisites display
       showDescription: false,      // Full description display (disabled by default for performance)
-      showInstructors: true        // Instructor information display
+      showInstructors: true        // Instructor information display (standardized to true)
     },
 
     /**
@@ -155,7 +155,7 @@
      */
     EXTENSION_INFO: {
       NAME: 'Caltech Course Code Tooltip',
-      VERSION: '1.0.0',
+      VERSION: '1.1.0',
       AUTHOR: 'Varun Rodrigues',
       EMAIL: 'vrodrigu@caltech.edu',
       CLASS: '2029',
@@ -189,6 +189,50 @@
       SHORTHAND_NOTATION: true,   // Support for shorthand (e.g., "CS 15, 16, 17")
       DARK_MODE: true,            // Automatic dark mode detection
       ANALYTICS: false            // Usage analytics (disabled for privacy)
+    },
+
+    /**
+     * Utility methods for configuration validation and access
+     * @type {Object}
+     */
+    UTILS: {
+      /**
+       * Validate a settings object against the default settings schema
+       * @param {Object} settings - Settings object to validate
+       * @returns {Object} Validated settings object
+       */
+      validateSettings(settings) {
+        if (!settings || typeof settings !== 'object') {
+          return { ...CaltechExtensionConfig.DEFAULT_SETTINGS };
+        }
+
+        const validatedSettings = { ...CaltechExtensionConfig.DEFAULT_SETTINGS };
+        
+        for (const [key, defaultValue] of Object.entries(CaltechExtensionConfig.DEFAULT_SETTINGS)) {
+          if (key in settings && typeof settings[key] === typeof defaultValue) {
+            validatedSettings[key] = settings[key];
+          }
+        }
+        
+        return validatedSettings;
+      },
+
+      /**
+       * Check if a feature flag is enabled
+       * @param {string} flagName - Name of the feature flag
+       * @returns {boolean} True if feature is enabled
+       */
+      isFeatureEnabled(flagName) {
+        return CaltechExtensionConfig.FEATURE_FLAGS[flagName] === true;
+      },
+
+      /**
+       * Get the current version of the configuration
+       * @returns {string} Configuration version
+       */
+      getVersion() {
+        return CaltechExtensionConfig.EXTENSION_INFO.VERSION;
+      }
     }
   };
 
@@ -202,6 +246,7 @@
   Object.freeze(CaltechExtensionConfig.EXTENSION_INFO);
   Object.freeze(CaltechExtensionConfig.ACCESSIBILITY_CONFIG);
   Object.freeze(CaltechExtensionConfig.FEATURE_FLAGS);
+  Object.freeze(CaltechExtensionConfig.UTILS);
   Object.freeze(CaltechExtensionConfig);
 
   // Expose configuration to global scope for access by other scripts

@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Caltech Course Code Tooltip",
-  "version": "1.0.0",
-  "description": "Automatically detects Caltech course codes on web pages and displays helpful tooltips with detailed course information.",
+  "version": "1.1.0",
+  "description": "Automatically detects Caltech course codes on web pages and displays helpful tooltips with detailed course information. Features click-to-pin tooltips, section cycling, manual lookup, and enhanced pattern recognition.",
   "author": "Varun Rodrigues <vrodrigu@caltech.edu>",
   "homepage_url": "https://github.com/Varun-Rodrigues/Caltech-Course-Tooltip",
   

@@ -18,7 +18,7 @@
  * 
  * @fileoverview Content script for the Caltech Course Code Tooltip Extension
  * @author Varun Rodrigues <vrodrigu@caltech.edu>
- * @version 1.0.0
+ * @version 1.1.0
  * @since 1.0.0
  * @copyright 2025 Varun Rodrigues
  * @license MIT
@@ -41,7 +41,81 @@ class CaltechCourseTooltip {
      * @type {Object}
      * @private
      */
-    this.config = window.CaltechExtensionConfig || {
+    this.config = this.getConfigWithFallback();
+    
+    /**
+     * Course catalog data cache
+     * @type {Array<Object>}
+     * @private
+     */
+    this.courses = [];
+    
+    /**
+     * Tooltip DOM element
+     * @type {HTMLElement|null}
+     * @private
+     */
+    this.tooltip = null;
+    
+    /**
+     * Timer management
+     * @type {Object}
+     * @private
+     */
+    this.timers = {
+      hover: null,
+      hide: null,
+      searchDebounce: null
+    };
+    
+    /**
+     * Set of processed DOM nodes to prevent duplicate processing
+     * @type {WeakSet<Node>}
+     * @private
+     */
+    this.processedNodes = new WeakSet();
+    
+    /**
+     * Current user settings
+     * @type {Object}
+     * @private
+     */
+    this.settings = { ...this.config.DEFAULT_SETTINGS };
+    
+    /**
+     * Mutation observer for dynamic content
+     * @type {MutationObserver|null}
+     * @private
+     */
+    this.mutationObserver = null;
+    
+    // Tooltip state management properties
+    this.tooltipState = {
+      pinnedElement: null,
+      currentHoveredElement: null,
+      isPinned: false
+    };
+    
+    // Section cycling state management
+    this.sectionCycleState = new Map();
+    
+    // Performance tracking
+    this.performanceMetrics = this.initializePerformanceMetrics();
+    
+    // Initialize the extension asynchronously
+    this.init().catch(error => {
+      console.error('🚨 Extension initialization failed:', error);
+      this.performanceMetrics.errors++;
+    });
+  }
+
+  /**
+   * Get configuration with robust fallback
+   * @returns {Object} Configuration object
+   * @private
+   */
+  getConfigWithFallback() {
+    return window.CaltechExtensionConfig || {
       DEFAULT_SETTINGS: {
         extensionEnabled: true,
         showName: true,
@@ -65,93 +139,21 @@ class CaltechCourseTooltip {
         FADE_DURATION: 200
       }
     };
-    /**
-     * Course catalog data cache
-     * @type {Array<Object>}
-     * @private
-     */
-    this.courses = [];
-    /**
-     * Tooltip DOM element
-     * @type {HTMLElement|null}
-     * @private
-     */
-    this.tooltip = null;
-    /**
-     * Hover delay timer
-     * @type {number|null}
-     * @private
-     */
-    this.hoverTimeout = null;
-    /**
-     * Hide delay timer
-     * @type {number|null}
-     * @private
-     */
-    this.hideTimeout = null;
-    /**
-     * Set of processed DOM nodes to prevent duplicate processing
-     * @type {WeakSet<Node>}
-     * @private
-     */
-    this.processedNodes = new WeakSet();
-    /**
-     * Current user settings
-     * @type {Object}
-     * @private
-     */
-    this.settings = { ...this.config.DEFAULT_SETTINGS };
-    /**
-     * Mutation observer for dynamic content
-     * @type {MutationObserver|null}
-     * @private
-     */
-    this.mutationObserver = null;
-    // Tooltip state management properties
-    /**
-     * Currently pinned element (clicked to keep tooltip visible)
-     * @type {HTMLElement|null}
-     * @private
-     */
-    this.pinnedElement = null;
-    /**
-     * Currently hovered element
-     * @type {HTMLElement|null}
-     * @private
-     */
-    this.currentHoveredElement = null;
-    /**
-     * Whether a tooltip is currently pinned
-     * @type {boolean}
-     * @private
-     */
-    this.isPinned = false;
-    // Section cycling state management
-    /**
-     * Map for tracking section cycling state per element
-     * Maps element -> {sections: Array, currentIndex: number}
-     * @type {Map<HTMLElement, Object>}
-     * @private
-     */
-    this.sectionCycleState = new Map();
-    // Performance tracking
-    /**
-     * Performance metrics for monitoring
-     * @type {Object}
-     * @private
-     */
-    this.performanceMetrics = {
+  }
+
+  /**
+   * Initialize performance metrics
+   * @returns {Object} Performance metrics object
+   * @private
+   */
+  initializePerformanceMetrics() {
+    return {
       processedNodes: 0,
       tooltipsShown: 0,
       coursesMatched: 0,
       errors: 0,
       startTime: Date.now()
     };
-    // Initialize the extension asynchronously
-    this.init().catch(error => {
-      console.error('🚨 Extension initialization failed:', error);
-      this.performanceMetrics.errors++;
-    });
   }
   /**
    * Initialize the extension with error handling and performance monitoring
@@ -162,42 +164,71 @@ class CaltechCourseTooltip {
    */
   async init() {
     try {
-      // Validate Chrome extension environment
-      if (!this.validateEnvironment()) {
+      // Validate environment and prevent duplicate initialization
+      if (!this.validateEnvironment() || this.checkExistingInitialization()) {
         return;
       }
-      // Prevent multiple initializations on the same page
-      if (this.checkExistingInitialization()) {
-        return;
-      }
+
       // Mark as initialized to prevent duplicate instances
       window.caltechExtensionInitialized = true;
+
       // Load extension data and settings in parallel for better performance
-      const initPromises = [
+      await Promise.all([
         this.loadSettings(),
         this.loadCourseData()
-      ];
-      await Promise.all(initPromises);
+      ]);
+
       // Validate course data availability
       if (this.courses.length === 0) {
+        console.warn('⚠️ No course data available, extension will not function');
         return;
       }
+
       // Set up UI and event handling
-      this.createTooltipElement();
-      this.setupGlobalClickListener();
+      this.setupExtensionUI();
+      this.setupEventListeners();
       this.setupMessageListener();
+
       // Begin content processing if extension is enabled
       if (this.settings.extensionEnabled) {
-        await this.processExistingContent();
-        this.setupMutationObserver();
+        await this.startContentProcessing();
       }
+
       // Log successful initialization
       this.performanceMetrics.initTime = Date.now() - this.performanceMetrics.startTime;
+      console.log('✅ Extension initialized successfully');
+      
     } catch (error) {
       console.error('💥 Initialization failed:', error);
       this.performanceMetrics.errors++;
       throw new Error(`Extension initialization failed: ${error.message}`);
     }
+  }
+
+  /**
+   * Set up extension UI components
+   * @private
+   */
+  setupExtensionUI() {
+    this.createTooltipElement();
+  }
+
+  /**
+   * Set up all event listeners
+   * @private
+   */
+  setupEventListeners() {
+    this.setupGlobalClickListener();
+  }
+
+  /**
+   * Start content processing
+   * @async
+   * @private
+   */
+  async startContentProcessing() {
+    await this.processExistingContent();
+    this.setupMutationObserver();
   }
   /**
    * Validate that the extension is running in a proper Chrome extension environment
@@ -592,22 +623,26 @@ class CaltechCourseTooltip {
   handleGlobalClick(e) {
     try {
       // Check if the clicked element is a course highlight
-      if (e.target.classList && e.target.classList.contains('caltech-course-highlight')) {
+      if (e.target.classList?.contains('caltech-course-highlight')) {
         // This will be handled by the individual element's click listener
         return;
       }
+
       // Check if the clicked element is inside a pinned tooltip
-      if (this.tooltip && this.tooltip.contains(e.target) && this.isPinned) {
+      if (this.tooltip?.contains(e.target) && this.tooltipState.isPinned) {
         // Don't unpin if clicking inside a pinned tooltip
         return;
       }
+
       // Clicked outside - unpin any pinned tooltip
-      if (this.isPinned) {
+      if (this.tooltipState.isPinned) {
         this.unpinTooltip();
       }
     } catch (error) {
+      console.error('❌ Error handling global click:', error);
     }
   }
+
   /**
    * Handle global keyboard events for accessibility
    * @param {KeyboardEvent} e - Keyboard event
@@ -616,21 +651,59 @@ class CaltechCourseTooltip {
   handleGlobalKeyDown(e) {
     try {
       // ESC key unpins tooltip
-      if (e.key === 'Escape' && this.isPinned) {
+      if (e.key === 'Escape' && this.tooltipState.isPinned) {
         e.preventDefault();
         this.unpinTooltip();
         return;
       }
+
       // Space or Enter on focused course highlight
       if ((e.key === ' ' || e.key === 'Enter') && 
-          e.target.classList && 
-          e.target.classList.contains('caltech-course-highlight')) {
+          e.target.classList?.contains('caltech-course-highlight')) {
         e.preventDefault();
         e.target.click(); // Trigger the click handler
         return;
       }
     } catch (error) {
+      console.error('❌ Error handling global keydown:', error);
     }
+  }
+
+  /**
+   * Clear a specific timer
+   * @param {string} timerName - Name of the timer to clear
+   * @private
+   */
+  clearTimer(timerName) {
+    if (this.timers[timerName]) {
+      clearTimeout(this.timers[timerName]);
+      this.timers[timerName] = null;
+    }
+  }
+
+  /**
+   * Set a timer with automatic cleanup
+   * @param {string} timerName - Name of the timer
+   * @param {Function} callback - Function to execute
+   * @param {number} delay - Delay in milliseconds
+   * @private
+   */
+  setTimer(timerName, callback, delay) {
+    this.clearTimer(timerName);
+    this.timers[timerName] = setTimeout(() => {
+      callback();
+      this.timers[timerName] = null;
+    }, delay);
+  }
+
+  /**
+   * Clear all timers
+   * @private
+   */
+  clearAllTimers() {
+    Object.keys(this.timers).forEach(timerName => {
+      this.clearTimer(timerName);
+    });
   }
   /**
    * Process all existing content on the page for course codes
@@ -743,80 +816,135 @@ class CaltechCourseTooltip {
     }
     this.processedNodes.add(element);
   }
+  /**
+   * Set up mutation observer for dynamic content
+   * @private
+   */
   setupMutationObserver() {
     if (!this.settings.extensionEnabled) return;
+
     // Clean up existing observer
     if (this.mutationObserver) {
       this.mutationObserver.disconnect();
+      this.mutationObserver = null;
     }
+
     this.mutationObserver = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        mutation.addedNodes.forEach(async (node) => {
-          if (node.nodeType === Node.ELEMENT_NODE || node.nodeType === Node.TEXT_NODE) {
-            await this.processNode(node);
-          }
-        });
-      });
+      this.handleMutations(mutations);
     });
+
     this.mutationObserver.observe(document.body, {
       childList: true,
       subtree: true,
       characterData: true
     });
   }
+
+  /**
+   * Handle DOM mutations efficiently
+   * @param {MutationRecord[]} mutations - Array of mutation records
+   * @private
+   */
+  async handleMutations(mutations) {
+    const nodesToProcess = new Set();
+    
+    for (const mutation of mutations) {
+      for (const node of mutation.addedNodes) {
+        if (node.nodeType === Node.ELEMENT_NODE || node.nodeType === Node.TEXT_NODE) {
+          nodesToProcess.add(node);
+        }
+      }
+    }
+
+    // Process nodes in batch to improve performance
+    for (const node of nodesToProcess) {
+      await this.processNode(node);
+    }
+  }
+
+  /**
+   * Process a single DOM node
+   * @param {Node} node - Node to process
+   * @async
+   * @private
+   */
   async processNode(node) {
-    if (!this.settings.extensionEnabled) return;
-    if (this.processedNodes.has(node)) {
+    if (!this.settings.extensionEnabled || this.processedNodes.has(node)) {
       return;
     }
-    if (node.nodeType === Node.TEXT_NODE) {
-      await this.processTextNode(node);
-    } else if (node.nodeType === Node.ELEMENT_NODE) {
-      // Skip processing certain elements
-      if (this.shouldSkipElement(node)) {
-        return;
+
+    try {
+      if (node.nodeType === Node.TEXT_NODE) {
+        await this.processTextNode(node);
+      } else if (node.nodeType === Node.ELEMENT_NODE && !this.shouldSkipElement(node)) {
+        await this.processElementNode(node);
       }
-      // Process all text nodes within this element
-      const walker = document.createTreeWalker(
-        node,
-        NodeFilter.SHOW_TEXT,
-        {
-          acceptNode: (textNode) => {
-            // Skip if parent is already processed or should be skipped
-            if (this.shouldSkipElement(textNode.parentElement)) {
-              return NodeFilter.FILTER_REJECT;
-            }
-            return NodeFilter.FILTER_ACCEPT;
-          }
-        }
-      );
-      let textNode;
-      let textNodeCount = 0;
-      while (textNode = walker.nextNode()) {
-        textNodeCount++;
-        await this.processTextNode(textNode);
-      }
+      
+      this.processedNodes.add(node);
+    } catch (error) {
+      console.error('❌ Error processing node:', error);
+      this.performanceMetrics.errors++;
     }
-    this.processedNodes.add(node);
   }
+
+  /**
+   * Process an element node and its text children
+   * @param {Element} element - Element to process
+   * @async
+   * @private
+   */
+  async processElementNode(element) {
+    const walker = document.createTreeWalker(
+      element,
+      NodeFilter.SHOW_TEXT,
+      {
+        acceptNode: (textNode) => {
+          return this.shouldSkipElement(textNode.parentElement) 
+            ? NodeFilter.FILTER_REJECT 
+            : NodeFilter.FILTER_ACCEPT;
+        }
+      }
+    );
+
+    const textNodes = [];
+    let textNode;
+    while (textNode = walker.nextNode()) {
+      textNodes.push(textNode);
+    }
+
+    // Process text nodes in batch
+    for (const node of textNodes) {
+      await this.processTextNode(node);
+    }
+  }
+  /**
+   * Determine if an element should be skipped during processing
+   * @param {Element} element - Element to check
+   * @returns {boolean} True if element should be skipped
+   * @private
+   */
   shouldSkipElement(element) {
     if (!element) return true;
-    const skipTags = ['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEXTAREA', 'INPUT', 'SELECT'];
-    const skipClasses = ['caltech-tooltip', 'caltech-course-highlight'];
+
+    const SKIP_TAGS = ['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEXTAREA', 'INPUT', 'SELECT'];
+    const SKIP_CLASSES = ['caltech-tooltip', 'caltech-course-highlight'];
+
     // Check if element itself should be skipped
-    if (skipTags.includes(element.tagName) ||
-        skipClasses.some(cls => element.classList.contains(cls)) ||
+    if (SKIP_TAGS.includes(element.tagName) ||
+        SKIP_CLASSES.some(cls => element.classList.contains(cls)) ||
         element.isContentEditable) {
       return true;
     }
+
     // Check if element is inside a tooltip by walking up the DOM tree
     let parent = element.parentElement;
     while (parent) {
-      if (skipClasses.some(cls => parent.classList.contains(cls))) {
+      if (SKIP_CLASSES.some(cls => parent.classList.contains(cls))) {
         return true;
       }
       parent = parent.parentElement;
     }
+
     return false;
   }
   // Detect course codes in text using the shared pattern

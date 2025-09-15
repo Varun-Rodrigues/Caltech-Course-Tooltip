@@ -1,8 +1,27 @@
-# Caltech Course Tooltip Extension - Documentation
+# Caltech Course Tooltip Extension - Technical Documentation
 
 ## Overview
 
-The Caltech Course Tooltip Extension is a Chrome browser extension that automatically detects Caltech course codes on web pages and displays interactive tooltips with detailed course information. It supports various course code formats and provides a seamless experience for students, faculty, and staff navigating academic content.
+The Caltech Course Tooltip Extension is a Chrome browser extension that automatically detects Caltech course codes on web pages and displays interactive tooltips with detailed course information. Version 1.1.0 features a completely refactored codebase with enhanced performance, improved user experience, and professional-grade code quality.
+
+## 🆕 What's New in v1.1.0
+
+### Major Enhancements
+- **Complete Code Refactoring**: Professional-grade code organization with eliminated redundancies
+- **Click-to-Pin Tooltips**: Interactive tooltips that stay visible when clicked
+- **Section Cycling**: Navigate through multi-section courses with ease
+- **Manual Course Lookup**: Built-in search functionality in the popup interface
+- **Enhanced Pattern Recognition**: Support for ranges, shorthand notation, and edge cases
+- **Performance Optimizations**: Improved caching, memory management, and DOM processing
+- **Accessibility Improvements**: Full keyboard navigation and screen reader support
+- **Better Error Handling**: Robust error recovery and user feedback
+
+### Technical Improvements
+- **Modular Architecture**: Clean separation of concerns across all components
+- **Smart Caching**: Advanced caching system with TTL and automatic cleanup
+- **Timer Management**: Centralized timer utilities for better resource management
+- **DOM Optimization**: Efficient mutation observers and batch processing
+- **Type Safety**: Enhanced validation and type checking throughout
 
 ## Table of Contents
 
@@ -38,9 +57,12 @@ The extension follows a standard Chrome Extension Manifest V3 architecture with 
 ### Key Design Principles
 
 - **Modular Architecture**: Separated concerns between content detection, data processing, and UI
-- **Performance Optimized**: Efficient DOM traversal and minimal memory usage
+- **Performance Optimized**: Efficient DOM traversal with smart caching and batch processing
 - **User Privacy**: No external data transmission, all processing done locally
 - **Accessibility**: Full keyboard navigation and screen reader support
+- **Error Resilience**: Robust error handling with graceful degradation
+- **Memory Management**: Automatic cleanup and resource optimization
+- **Code Quality**: Professional-grade refactored codebase with comprehensive documentation
 
 ## File Structure
 
@@ -68,69 +90,113 @@ caltech-course-tooltip/
 ### 1. Background Service Worker (`background.js`)
 
 The background script handles:
-- Course data loading and caching
-- Message passing between content script and popup
-- Course matching algorithms
-- Performance monitoring
+- Course data loading and caching with TTL (Time To Live) management
+- Message passing between content script and popup with enhanced error handling
+- Sophisticated course matching algorithms with multiple fallback strategies
+- Performance monitoring and statistics tracking
+- Cache management with automatic cleanup and memory optimization
+
+**Key Features (v1.1.0):**
+- **CacheManager Class**: Advanced caching with automatic expiration
+- **CourseMatchingUtils**: Sophisticated pattern matching for complex course formats
+- **Message Handler Map**: Clean, maintainable message routing system
+- **Error Recovery**: Robust error handling with consistent logging
 
 **Key Functions:**
-- `loadCourseData()` - Loads and validates course catalog
-- `findCourseMatch()` - Intelligent course code matching
-- `handleMessage()` - Inter-script communication
+- `loadCourseData()` - Loads and validates course catalog with caching
+- `findCourseMatch()` - Intelligent course code matching with multiple strategies
+- `handleMessage()` - Enhanced inter-script communication with error handling
 
 ### 2. Content Script (`content.js`)
 
 The content script is responsible for:
-- DOM monitoring and course code detection
-- Tooltip creation and positioning
-- User interaction handling
-- Real-time content processing
+- DOM monitoring with efficient mutation observers and batch processing
+- Advanced course code detection with support for complex patterns
+- Interactive tooltip creation with click-to-pin functionality
+- Section cycling for multi-section courses
+- User interaction handling with full accessibility support
+- Real-time content processing with performance optimizations
+
+**Key Features (v1.1.0):**
+- **CaltechCourseTooltip Class**: Completely refactored main extension class
+- **Timer Management**: Centralized timer utilities for better resource management
+- **Enhanced Detection**: Support for ranges, shorthand, no-space formats, and edge cases
+- **Performance Optimization**: Batch processing, caching, and efficient DOM traversal
+- **Accessibility**: Full keyboard navigation and screen reader support
 
 **Key Classes:**
-- `CaltechCourseTooltip` - Main extension class
-- Course detection methods
-- Tooltip management system
-- Event handling system
+- `CaltechCourseTooltip` - Main extension class with modular architecture
+- Course detection methods with advanced pattern recognition
+- Tooltip management system with pinning and cycling capabilities
+- Event handling system with accessibility support
 
 ### 3. Configuration (`config.js`)
 
 Global configuration object containing:
-- Course code regex patterns
-- Tooltip styling constants
-- Performance settings
-- Default user preferences
+- Course code regex patterns with support for complex formats
+- Tooltip styling constants and behavior settings
+- Performance optimization settings
+- Default user preferences with validation utilities
+- Feature flags for experimental functionality
+
+**Key Features (v1.1.0):**
+- **UTILS Object**: Configuration validation and utility methods
+- **Enhanced Patterns**: Support for ranges, shorthand, and edge cases
+- **Type Safety**: Built-in validation methods for settings
+- **Immutability**: Frozen configuration objects to prevent runtime modification
+
+### 4. Popup Interface (`popup.js`)
+
+**Key Features (v1.1.0):**
+- **PopupManager Class**: Refactored with better error handling and performance
+- **Manual Course Lookup**: Built-in search functionality with debounced input
+- **DOM Element Caching**: Improved performance with cached element references
+- **Enhanced Settings Management**: Real-time updates with validation
+- **Error Tracking**: Comprehensive error logging and user feedback
 
 ## Course Detection System
 
 ### Supported Course Code Formats
 
-| Format | Example | Description |
-|--------|---------|-------------|
-| Standard | `CS 1`, `Ma 108` | Department code + number |
-| Cross-listed | `ESE/Ge 142` | Multiple departments |
-| Primary/Secondary | `Ma 3/103` | Undergrad/grad versions |
-| Complex | `ACM 95/100 ab` | With section letters |
-| Multi-department | `Ma/CS 6/106` | Cross-listed with numbers |
-| Range | `EC 120-122` | Course number ranges |
-| Shorthand | `CS 15, 16, 17` | Comma-separated sequences |
+| Format | Example | Description | New in v1.1.0 |
+|--------|---------|-------------|----------------|
+| Standard | `CS 1`, `Ma 108` | Department code + number | ✅ Enhanced |
+| Cross-listed | `ESE/Ge 142` | Multiple departments | ✅ Enhanced |
+| Primary/Secondary | `Ma 3/103` | Undergrad/grad versions | ✅ Enhanced |
+| Complex | `ACM 95/100 ab` | With section letters | ✅ Enhanced |
+| Multi-department | `Ma/CS 6/106` | Cross-listed with numbers | ✅ Enhanced |
+| Range | `EC 120-122` | Course number ranges | 🆕 New |
+| Shorthand | `CS 15, 16, 17` | Comma-separated sequences | 🆕 New |
+| No-Space | `CS156ab` | Concatenated format | 🆕 New |
+| Edge Cases | `Bi 1x`, `Ma 1d`, `Ge 11d` | Special letter variants | 🆕 New |
 
-### Detection Algorithm
+### Detection Algorithm (Enhanced in v1.1.0)
 
-1. **Text Node Traversal**: Uses `TreeWalker` for efficient DOM traversal
-2. **Pattern Matching**: Multi-stage regex matching for different formats
-3. **Validation**: Checks against course catalog for actual existence
-4. **DOM Modification**: Creates highlighted spans with event listeners
+1. **Text Node Traversal**: Uses `TreeWalker` for efficient DOM traversal with batch processing
+2. **Multi-Stage Pattern Matching**: 
+   - Range detection (`CS 120-122`)
+   - Shorthand notation (`CS 15, 16, 17`)
+   - No-space formats (`CS156ab`)
+   - Edge case patterns (special letter variants)
+   - Standard patterns with improved recognition
+3. **Intelligent Validation**: Checks against course catalog with sophisticated matching
+4. **DOM Modification**: Creates highlighted spans with enhanced event listeners
+5. **Performance Optimization**: Smart caching and mutation observer improvements
 
-### Performance Optimizations
+### Performance Optimizations (Enhanced in v1.1.0)
 
-- **Batch Processing**: Processes text nodes in batches to avoid UI blocking
-- **Caching**: WeakSet for tracking processed nodes
-- **Debouncing**: Prevents excessive processing during rapid DOM changes
-- **Lazy Loading**: Course data loaded asynchronously
+- **Advanced Batch Processing**: Processes text nodes in optimized batches to prevent UI blocking
+- **Smart Caching**: TTL-based caching system with automatic cleanup and memory management
+- **Enhanced Debouncing**: Prevents excessive processing during rapid DOM changes
+- **Lazy Loading**: Course data loaded asynchronously with fallback strategies
+- **Memory Management**: WeakSet for tracking processed nodes with automatic garbage collection
+- **Timer Optimization**: Centralized timer management with automatic cleanup
+- **DOM Efficiency**: Improved mutation observers with intelligent filtering
+- **Error Recovery**: Graceful degradation with performance monitoring
 
 ## Configuration
 
-### User Settings
+### User Settings (Enhanced in v1.1.0)
 
 Settings are stored in Chrome's sync storage and include:
 
@@ -141,11 +207,16 @@ Settings are stored in Chrome's sync storage and include:
   showUnits: true,                 // Show unit information
   showTerms: true,                 // Show term availability
   showPrerequisites: true,         // Show prerequisites
-  showDescription: false,          // Show course description
-  showInstructors: true,           // Show instructor information
-  tooltipDelay: 300               // Hover delay in milliseconds
+  showDescription: false,          // Show course description (default: false for performance)
+  showInstructors: true,           // Show instructor information (standardized to true)
 }
 ```
+
+**New Features:**
+- **Real-time Validation**: Settings validated before storage
+- **Instant Updates**: Changes apply immediately without page refresh
+- **Error Recovery**: Automatic fallback to defaults on corruption
+- **Performance Awareness**: Settings optimized for performance impact
 
 ### Course Code Pattern
 

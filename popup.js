@@ -15,9 +15,9 @@
  * 
  * @fileoverview Popup interface for the Caltech Course Code Tooltip Extension
  * @author Varun Rodrigues <vrodrigu@caltech.edu>
- * @version 1.0.0
+ * @version 1.1.0
  * @since 1.0.0
- * @copyright 2024 Varun Rodrigues
+ * @copyright 2025 Varun Rodrigues
  * @license MIT
  */
 
@@ -35,7 +35,7 @@ const DEFAULT_SETTINGS = (typeof window !== 'undefined' && window.CaltechExtensi
   showTerms: true,
   showPrerequisites: true,
   showDescription: false,
-  showInstructors: true
+  showInstructors: true // Standardized to true across all files
 };
 
 /**
@@ -44,6 +44,13 @@ const DEFAULT_SETTINGS = (typeof window !== 'undefined' && window.CaltechExtensi
  * @const
  */
 const TOGGLE_IDS = Object.keys(DEFAULT_SETTINGS);
+
+/**
+ * Debounce delay for search input (milliseconds)
+ * @type {number}
+ * @const
+ */
+const SEARCH_DEBOUNCE_DELAY = 300;
 
 /**
  * Popup application class for managing the extension interface
@@ -86,6 +93,13 @@ class PopupManager {
       lookupCount: 0,
       errorCount: 0
     };
+
+    /**
+     * DOM element references for better performance
+     * @type {Object}
+     * @private
+     */
+    this.elements = {};
     
     // Initialize when DOM is ready
     if (document.readyState === 'loading') {
@@ -102,6 +116,9 @@ class PopupManager {
    */
   async initialize() {
     try {
+      // Cache DOM elements for better performance
+      this.cacheElements();
+      
       // Load current settings and update UI
       this.settings = await this.loadSettings();
       this.updateUI(this.settings);
@@ -110,10 +127,30 @@ class PopupManager {
       // Set up event handlers
       this.setupEventListeners(this.settings);
       this.initializeAccordions();
+      
+      console.log('✅ Popup initialized successfully');
     } catch (error) {
       console.error('❌ Error initializing popup:', error);
       this.handleError(error, 'Popup initialization failed');
       this.updateStatus(false);
+    }
+  }
+
+  /**
+   * Cache frequently used DOM elements
+   * @private
+   */
+  cacheElements() {
+    this.elements = {
+      lookupInput: document.getElementById('course-lookup-input'),
+      lookupResult: document.getElementById('course-lookup-result'),
+      headerSubtitle: document.getElementById('header-subtitle'),
+      statusText: document.getElementById('status-text')
+    };
+
+    // Validate that required elements exist
+    if (!this.elements.lookupInput || !this.elements.lookupResult) {
+      console.warn('⚠️ Some popup elements not found in DOM');
     }
   }
 
@@ -193,8 +230,7 @@ class PopupManager {
    * @private
    */
   setupCourseLookup(settings) {
-    const lookupInput = document.getElementById('course-lookup-input');
-    const lookupResult = document.getElementById('course-lookup-result');
+    const { lookupInput, lookupResult } = this.elements;
     
     if (!lookupInput || !lookupResult) {
       console.warn('⚠️ Course lookup elements not found');
@@ -217,7 +253,7 @@ class PopupManager {
         } else {
           this.showDefaultLookupMessage(lookupResult);
         }
-      }, 300); // 300ms debounce
+      }, SEARCH_DEBOUNCE_DELAY);
     });
 
     // Initial message
@@ -580,8 +616,7 @@ class PopupManager {
    * @private
    */
   async refreshLookupIfActive(newSettings) {
-    const lookupInput = document.getElementById('course-lookup-input');
-    const lookupResult = document.getElementById('course-lookup-result');
+    const { lookupInput, lookupResult } = this.elements;
     
     if (lookupInput && lookupResult && lookupInput.value.trim().length >= 2) {
       const courseCode = lookupInput.value.trim().toUpperCase();
@@ -611,8 +646,7 @@ class PopupManager {
    * @private
    */
   updateStatus(enabled) {
-    const headerSubtitle = document.getElementById('header-subtitle');
-    const statusText = document.getElementById('status-text');
+    const { headerSubtitle, statusText } = this.elements;
     
     if (headerSubtitle && statusText) {
       headerSubtitle.className = enabled ? 'header-subtitle enabled' : 'header-subtitle disabled';
@@ -679,6 +713,20 @@ class PopupManager {
       uptime: Date.now() - this.metrics.startTime,
       recentErrors: this.errors.slice(-5)
     };
+  }
+
+  /**
+   * Escape HTML to prevent XSS attacks
+   * @param {string} text - Text to escape
+   * @returns {string} Escaped HTML
+   * @private
+   */
+  escapeHtml(text) {
+    if (!text) return '';
+    
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
   }
 }
 
