@@ -1,218 +1,169 @@
-# 🔍 Caltech Course Tooltip - Chrome Extension
+# Caltech Course Tooltip - Chrome Extension
 
 **Current Version**: v1.1.0 | **Manifest Version**: 3 | **Platform**: Chrome/Chromium
 
-A sleek Chrome extension that automatically detects Caltech course codes on web pages and displays helpful tooltips with course information. Perfect for students, faculty, and staff navigating course catalogs, schedules, and academic discussions.
+A Chrome extension that automatically detects Caltech course codes on web pages and displays tooltips with course information. Designed for students, faculty, and staff navigating course catalogs, schedules, and academic discussions.
 
-## ✨ Features
+## Features
 
-### 🎯 **Advanced Course Detection**
-- **Smart Pattern Recognition**: Automatically finds course codes like "CS 156", "Ma 3", or "ACM 95/100"
-- **Complex Format Support**: Handles cross-listed courses, compound numbers, and section letters
-- **Range Detection**: Recognizes course ranges like "EC 120-122"
-- **Shorthand Notation**: Supports "CS 15, 16, 17" style listings
-- **No-Space Format**: Detects concatenated codes like "CS156ab"
-- **Edge Case Handling**: Special support for courses with unique letter patterns
+### Advanced Course Detection
 
-### 📝 **Enhanced User Experience**
-- **Google Docs Support**: Works seamlessly in Google Docs for collaborative work
-- **Click-to-Pin**: Click course codes to keep tooltips visible
-- **Section Cycling**: Navigate through multi-section courses
-- **Accessibility**: Full keyboard navigation and screen reader support
-- **Performance Optimized**: Minimal impact on page loading with smart caching
+The extension recognizes course codes in multiple formats:
 
-### 🎨 **Professional Styling**
-- **Clean Tooltips**: Elegant design matching Caltech's visual identity
-- **Responsive Design**: Adapts to different screen sizes and orientations
-- **Dark Mode Support**: Automatic detection and adaptation
-- **Visual Indicators**: Clear highlighting with subtle animations
+- Standard notation: "CS 1", "Ma 108"
+- Cross-listed courses: "ESE/Ge 142"
+- Primary/secondary numbering: "Ma 3/103"
+- Complex formats: "ACM 95/100 ab"
+- Multi-department courses: "Ma/CS 6/106"
+- Range notation: "EC 120-122"
+- Concatenated format: "CS156ab"
+- Special cases: "Bi 1x", "Ma 1d"
 
-### 🔧 **Customizable Settings**
-- **Granular Controls**: Toggle individual information fields
-- **Flexible Display**: Choose what information to show (name, units, terms, prerequisites, etc.)
-- **Manual Lookup**: Built-in course search functionality
-- **Real-time Updates**: Settings apply immediately without page refresh
+### User Experience
 
-## 🚀 Quick Start
+- **Click-to-pin tooltips**: Click any course code to keep its tooltip visible
+- **Section cycling**: Navigate through multi-section courses
+- **Optimized performance**: Smart caching minimizes page load impact
+- **Customizable display**: Toggle individual information fields through settings
+- **Manual lookup**: Built-in course search functionality
+
+## Quick Start
 
 ### Installation
 
-1. **Download the Extension**:
-   - Clone this repository or download as ZIP
-   - Extract to your desired location
-
-2. **Load in Chrome**:
-   - Open Chrome and navigate to `chrome://extensions/`
-   - Enable "Developer mode" (toggle in top-right)
-   - Click "Load unpacked"
-   - Select the project directory
-
-3. **Activate**:
-   - The extension icon will appear in your toolbar
-   - Click to access settings and toggle functionality
+1. Open Chrome and navigate to `chrome://extensions/`
+2. Search for "Caltech Course Tooltip"
+3. Download and install the extension
+4. Pin the extension to your toolbar for easy access
 
 ### Usage
 
-Once installed, the extension works automatically:
+The extension works automatically once installed:
 
-1. **Browse any website** with Caltech course codes
-2. **Course codes are highlighted** with a subtle blue background
-3. **Hover over highlighted codes** to see detailed course information
-4. **Google Docs support**: Works in collaborative documents too!
+1. Browse any website containing Caltech course codes
+2. Course codes are highlighted with a subtle blue background
+3. Hover over highlighted codes to view course information
+4. Click codes to pin tooltips or use manual search in the popup
 
-## 🎯 Course Detection Examples
+## Settings
 
-The extension recognizes these course code patterns:
-
-| Format | Example | Description |
-|--------|---------|-------------|
-| Standard | `CS 1`, `Ma 108` | Department + number |
-| Cross-listed | `ESE/Ge 142` | Multiple departments |
-| Primary/Secondary | `Ma 3/103` | Undergrad/grad versions |
-| Complex | `ACM 95/100 ab` | With section letters |
-| Multi-dept | `Ma/CS 6/106` | Cross-listed with numbers |
-| Range Notation | `EC 120-122` | Course number ranges |
-| Shorthand | `CS 15, 16, 17` | Comma-separated sequences |
-| No-Space | `CS156ab` | Concatenated format |
-| Edge Cases | `Bi 1x`, `Ma 1d` | Special letter variants |
-
-### 🆕 New in v1.1.0
-- **Enhanced Pattern Recognition**: Improved detection of complex course formats
-- **Performance Improvements**: Faster processing with better caching
-- **Click-to-Pin Tooltips**: Click any course code to keep its tooltip visible
-- **Section Cycling**: Navigate through multi-section courses easily
-- **Manual Course Lookup**: Search for courses directly in the popup
-- **Better Error Handling**: More robust operation with improved error recovery
-- **Accessibility Enhancements**: Full keyboard support and screen reader compatibility
-
-## ⚙️ Settings
-
-Access settings by clicking the extension icon:
+Access settings by clicking the extension icon in your toolbar.
 
 ### Display Options
-- **Extension Toggle**: Master on/off switch for course detection
-- **Course Name**: Toggle course title display
-- **Units**: Show/hide credit unit information
-- **Terms**: Display term availability
-- **Prerequisites**: Show prerequisite information
-- **Description**: Toggle full course descriptions
-- **Instructors**: Display instructor information
 
-### Interactive Features
-- **Click-to-Pin**: Click course codes to pin tooltips
-- **Manual Lookup**: Search for courses using the built-in search box
-- **Section Cycling**: Navigate through multi-section courses
-- **Keyboard Navigation**: Full accessibility support
+Control what information appears in tooltips:
+- Course name
+- Credit units
+- Term availability
+- Prerequisites
+- Full descriptions
+- Instructor information
 
-### Performance
-- **Smart Caching**: Automatically manages memory and performance
-- **Real-time Updates**: Settings apply immediately without page refresh
+### Additional Controls
 
-## 🛠️ Development
+- Master toggle for enabling/disabling course detection
+- Manual course lookup via search box
+- Real-time settings updates without page refresh
+
+## What's New in v1.1.0
+
+- Enhanced pattern recognition for complex course formats
+- Performance improvements with better caching
+- Click-to-pin tooltip functionality
+- Section cycling for multi-section courses
+- Manual course lookup in popup interface
+- Improved error handling and recovery
+- Complete code refactoring for maintainability
+- Enhanced accessibility with keyboard navigation
+- Better documentation and code comments
+
+## Development
 
 ### Technical Architecture
 
-- **Manifest V3**: Modern Chrome extension platform
-- **ES6+ JavaScript**: Clean, modular code with proper error handling
-- **TypeScript-style JSDoc**: Comprehensive documentation
-- **Modular Design**: Separated concerns for maintainability
-- **Performance Optimized**: Smart caching and efficient DOM processing
-- **Memory Management**: Automatic cleanup and resource optimization
-- **Error Recovery**: Robust error handling and graceful degradation
-
-### Code Quality Features
-- **Refactored Codebase**: v1.1.0 features completely refactored code for better performance
-- **Reduced Redundancy**: Eliminated duplicate code and improved efficiency
-- **Enhanced Error Handling**: Better error recovery and user feedback
-- **Improved Documentation**: Comprehensive inline documentation
-- **Consistent Patterns**: Standardized coding patterns across all files
+Built with modern web technologies:
+- Manifest V3 extension platform
+- ES6+ JavaScript with modular design
+- JSDoc annotations for code documentation
+- Smart caching and efficient DOM processing
+- Automatic memory management and cleanup
+- Robust error handling
 
 ### File Structure
 
 ```
 caltech-course-tooltip/
 ├── manifest.json          # Extension configuration
-├── background.js          # Service worker for extension lifecycle
-├── content.js             # Main course detection logic
-├── config.js              # Global configuration and patterns
+├── background.js          # Service worker
+├── content.js             # Course detection logic
+├── config.js              # Global configuration
 ├── popup.html/js/css      # Settings interface
-├── styles.css             # Tooltip and highlight styling
+├── styles.css             # Tooltip styling
 ├── catalog.json           # Course database
-└── images/                # Extension images
+└── images/                # Extension assets
 ```
 
 ### Setup for Development
 
-1. **Clone the repository**:
+1. Clone the repository:
    ```bash
    git clone <repository-url>
    cd caltech-course-tooltip
    ```
 
-2. **Load in Chrome**:
+2. Load in Chrome:
    - Navigate to `chrome://extensions/`
    - Enable Developer Mode
    - Click "Load unpacked"
    - Select the project directory
 
-### Code Quality
-
-- ✅ Modern JavaScript (ES6+) with proper error handling
-- ✅ TypeScript-style JSDoc annotations
-- ✅ Python code with full type hints
-- ✅ Comprehensive documentation
-- ✅ Modular, maintainable architecture
-
-## 🐛 Troubleshooting
-
-### Common Issues
+## Troubleshooting
 
 **Course codes not being detected?**
-- Check the browser console for error messages
-- Verify the extension is enabled in `chrome://extensions/`
+- Check if the extension is enabled in `chrome://extensions/`
+- Look for error messages in the browser console
 - Try refreshing the page or reloading the extension
 
 **Tooltips not appearing?**
-- Adjust tooltip delay in settings
-- Check if course codes are properly highlighted
-- Verify hover functionality on standard web pages first
+- Verify that course codes are highlighted
+- Check tooltip delay settings
+- Test hover functionality on other web pages
 
-## 🤝 Contributing
+## Contributing
 
-We welcome contributions! Here's how to get started:
+Contributions are welcome. To contribute:
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes and test thoroughly
-4. Commit your changes (`git commit -m 'Add amazing feature'`)
-5. Push to the branch (`git push origin feature/amazing-feature`)
+2. Create a feature branch (`git checkout -b feature/your-feature`)
+3. Test your changes thoroughly
+4. Commit with clear messages (`git commit -m 'Add feature description'`)
+5. Push to your branch (`git push origin feature/your-feature`)
 6. Open a Pull Request
 
-## 📚 Version History
+## Version History
 
-- **v1.1.0**: Major refactoring and feature enhancement
-  - ✨ Click-to-pin tooltips functionality
-  - 🔄 Section cycling for multi-section courses
-  - 🔍 Manual course lookup in popup
-  - 🎯 Enhanced course detection patterns (ranges, shorthand, no-space formats)
-  - ⚡ Performance improvements with better caching
-  - 🛠️ Complete code refactoring for maintainability
-  - ♿ Accessibility enhancements (keyboard navigation, screen reader support)
-  - 🐛 Improved error handling and recovery
-  - 📚 Enhanced documentation and code comments
+**v1.1.0** - Major refactoring and feature enhancement
+- Click-to-pin tooltips
+- Section cycling for multi-section courses
+- Manual course lookup
+- Enhanced course detection patterns
+- Performance improvements
+- Code refactoring for maintainability
+- Accessibility enhancements
+- Improved error handling
 
-- **v1.0.0**: Initial release with basic course detection including cross listing and detection for shorthand notations. Includes popup panel for configuration and course search
+**v1.0.0** - Initial release
+- Basic course detection including cross-listing
+- Shorthand notation detection
+- Configuration popup panel
+- Course search functionality
 
-## 📄 License
+## License
 
-This project is created for educational purposes as part of the Caltech student experience. Course data is sourced from official Caltech publications.
+Created for educational purposes as part of the Caltech student experience. Course data sourced from official Caltech publications.
 
-## 📞 Contact
+## Contact
 
 **Varun Rodrigues** - vrodrigu@caltech.edu
 
-For bug reports or feature requests, please contact the author or open an issue in the repository.
-
----
-
-*Made with ❤️ for the Caltech community*
+For bug reports or feature requests, please contact the author or fork the repository and submit a pull request.
